@@ -15,7 +15,12 @@ import {
   Bell,
   Settings,
   PlaySquare,
-  Globe
+  Globe,
+  Lock,
+  Camera,
+  CheckCircle,
+  Database,
+  ScanFace
 } from 'lucide-react'
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
@@ -25,7 +30,7 @@ function cn(...inputs: ClassValue[]) {
 }
 
 // --- Types ---
-type TabType = 'boost' | 'battery' | 'files' | 'network' | 'shield' | 'ai'
+type TabType = 'boost' | 'battery' | 'clean' | 'network' | 'shield' | 'vault'
 
 // --- Shared Components ---
 
@@ -203,13 +208,13 @@ const BatterySection = ({ onOptimize, isOptimizing, metrics, isUltraMode }: any)
   </div>
 )
 
-const FilesSection = ({ onClean, isCleaning, isUltraMode }: any) => {
+const PhotoCleanerSection = ({ onClean, isCleaning, isUltraMode }: any) => {
   const [junkFound, setJunkFound] = useState(0)
   
   useEffect(() => {
     if (isCleaning) {
       const timer = setInterval(() => {
-        setJunkFound(prev => prev + Math.random() * 50)
+        setJunkFound(prev => prev + Math.random() * 80)
       }, 100)
       return () => clearInterval(timer)
     }
@@ -218,33 +223,44 @@ const FilesSection = ({ onClean, isCleaning, isUltraMode }: any) => {
   return (
     <div className="flex flex-col gap-6 font-cairo">
        <div className="flex justify-between items-center mb-2">
-          <PremiumBadge label="Storage Guard" isUltraMode={isUltraMode} />
-          <span className="text-[10px] font-bold opacity-40 uppercase tracking-widest">NVMe Analysis</span>
+          <PremiumBadge label="AI Vision Clean" isUltraMode={isUltraMode} />
+          <span className="text-[10px] font-bold opacity-40 uppercase tracking-widest">Smart Gallery</span>
        </div>
 
        <GlassCard className="p-8 text-center" glowColor={isUltraMode ? "" : "purple"} isUltraMode={isUltraMode}>
           <div className="flex justify-center mb-6">
-             <div className="relative p-6 rounded-3xl bg-white/5 border border-white/10 group-hover:scale-110 transition-transform duration-700">
-                <HardDrive className={cn("w-12 h-12", isUltraMode ? "text-neonGreen" : "text-neonPurple")} />
+             <div className="relative p-6 rounded-[2rem] bg-white/5 border border-white/10 group-hover:scale-105 transition-transform duration-700">
+                <Camera className={cn("w-12 h-12", isUltraMode ? "text-neonGreen" : "text-neonPurple")} />
                 {isCleaning && (
                    <motion.div 
                      animate={{ rotate: 360 }}
-                     transition={{ duration: 0.5, repeat: Infinity, ease: "linear" }}
-                     className="absolute inset-2 border-2 border-neonPurple border-t-transparent rounded-full"
+                     transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                     className="absolute inset-2 border-2 border-neonPurple border-t-transparent rounded-[2rem]"
                    />
                 )}
              </div>
           </div>
           
-          <h3 className={cn("text-xl font-bold mb-1", isUltraMode && "text-neonGreen")}>Deep Storage Clean</h3>
-          <p className="text-[11px] opacity-40 mb-8 mx-auto max-w-[200px]">تحليل دقيق للملفات المؤقتة وبقايا التطبيقات المحذوفة.</p>
+          <h3 className={cn("text-xl font-bold mb-1", isUltraMode && "text-neonGreen")}>منظف الصور الذكي (AI)</h3>
+          <p className="text-[11px] opacity-40 mb-8 mx-auto max-w-[200px]">خوارزميات ذكية لفحص معرض الصور واكتشاف الصور المكررة والباهتة.</p>
           
           <div className="bg-black/40 rounded-[2rem] p-6 mb-2 border border-white/5">
-             <span className="text-[10px] block opacity-30 uppercase tracking-widest mb-3">Total Junk Detected</span>
+             <span className="text-[10px] block opacity-30 uppercase tracking-widest mb-3">Wasted Space Detected</span>
              <span className={cn("text-5xl font-orbitron font-black text-glow-blue", isUltraMode && "text-neonGreen text-glow-green")}>
-                {isCleaning ? (junkFound / 1024).toFixed(1) : "1.4"}
+                {isCleaning ? (junkFound / 1024).toFixed(1) : "2.8"}
                 <span className="text-xl ml-1 opacity-30">GB</span>
              </span>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 mt-6 text-right">
+             <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
+               <span className="text-sm font-black text-white/80 block">{isCleaning ? Math.floor(junkFound * 1.5) : 342}</span>
+               <span className="text-[9px] opacity-40 uppercase">صورة مكررة</span>
+             </div>
+             <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
+               <span className="text-sm font-black text-white/80 block">{isCleaning ? Math.floor(junkFound * 0.4) : 89}</span>
+               <span className="text-[9px] opacity-40 uppercase">صورة باهتة</span>
+             </div>
           </div>
        </GlassCard>
 
@@ -252,16 +268,17 @@ const FilesSection = ({ onClean, isCleaning, isUltraMode }: any) => {
          onClick={onClean}
          disabled={isCleaning}
          className={cn(
-           "h-20 rounded-[2rem] font-black font-orbitron flex items-center justify-center gap-3 transition-all",
+           "h-20 rounded-[2rem] font-black flex items-center justify-center gap-3 transition-all relative overflow-hidden",
            isCleaning 
-             ? (isUltraMode ? "bg-neonGreen/10 border border-neonGreen/20 text-neonGreen" : "bg-neonPurple/10 border border-neonPurple/40 text-neonPurple") 
-             : (isUltraMode ? "bg-neonGreen text-black" : "bg-neonPurple text-black shadow-lg shadow-neonPurple/20")
+             ? (isUltraMode ? "bg-neonGreen/10 border border-neonGreen/20 text-neonGreen" : "bg-neonPurple/10 border border-neonPurple/20 text-neonPurple") 
+             : (isUltraMode ? "bg-neonGreen text-black" : "bg-neonPurple text-white shadow-lg shadow-neonPurple/20")
          )}
        >
-         <Trash2 className={cn("w-5 h-5", isCleaning && "animate-pulse")} fill={isCleaning ? "none" : "currentColor"} />
+         {isCleaning && <motion.div className="absolute inset-y-0 left-0 bg-white/5" initial={{ width: 0 }} animate={{ width: '100%' }} transition={{ duration: 4 }} />}
+         <Trash2 className={cn("w-5 h-5", isCleaning && "animate-bounce")} fill={isCleaning ? "none" : "currentColor"} />
          <div className="flex flex-col items-start leading-none">
-            <span className="text-sm tracking-widest uppercase">{isCleaning ? "Cleaning Vault..." : "INITIALIZE DEEP CLEAN"}</span>
-            {!isCleaning && <span className="text-[9px] font-bold opacity-50 mt-1 font-cairo">تفريغ المساحة وحذف الملفات غير الضرورية</span>}
+            <span className="text-sm tracking-widest uppercase font-orbitron">{isCleaning ? "SCANNING NEURAL NET..." : "DEEP PHOTO CLEAN"}</span>
+            {!isCleaning && <span className="text-[9px] font-bold opacity-50 mt-1 font-cairo">تحرير مساحة التخزين بضغطة واحدة</span>}
          </div>
        </button>
     </div>
@@ -385,6 +402,84 @@ const installDNSProfile = () => {
   document.body.removeChild(link);
 };
 
+const generateVPNProfile = () => {
+  const profileName = "Neural_Stealth_VPN";
+  const id1 = crypto.randomUUID();
+  const id2 = crypto.randomUUID();
+  const vpnXML = `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>PayloadContent</key>
+	<array>
+		<dict>
+			<key>IKEv2</key>
+			<dict>
+				<key>AuthenticationMethod</key>
+				<string>None</string>
+				<key>ChildSecurityAssociationParameters</key>
+				<dict>
+					<key>EncryptionAlgorithm</key>
+					<string>AES-256</string>
+					<key>IntegrityAlgorithm</key>
+					<string>SHA2-256</string>
+				</dict>
+				<key>LocalIdentifier</key>
+				<string>StealthVPN</string>
+				<key>RemoteAddress</key>
+				<string>engage.cloudflareclient.com</string>
+				<key>RemoteIdentifier</key>
+				<string>engage.cloudflareclient.com</string>
+			</dict>
+			<key>IPv4</key>
+			<dict>
+				<key>OverridePrimary</key>
+				<integer>1</integer>
+			</dict>
+			<key>PayloadDescription</key>
+			<string>Configures Stealth VPN settings</string>
+			<key>PayloadDisplayName</key>
+			<string>Neural VPN IKEv2</string>
+			<key>PayloadIdentifier</key>
+			<string>com.neural.vpn.managed.${id1}</string>
+			<key>PayloadType</key>
+			<string>com.apple.vpn.managed</string>
+			<key>PayloadUUID</key>
+			<string>${id1}</string>
+			<key>PayloadVersion</key>
+			<integer>1</integer>
+			<key>UserDefinedName</key>
+			<string>Neural Stealth VPN</string>
+			<key>VPNType</key>
+			<string>IKEv2</string>
+		</dict>
+	</array>
+	<key>PayloadDisplayName</key>
+	<string>Neural Stealth VPN Profile</string>
+	<key>PayloadIdentifier</key>
+	<string>com.neural.vpn</string>
+	<key>PayloadRemovalDisallowed</key>
+	<false/>
+	<key>PayloadType</key>
+	<string>Configuration</string>
+	<key>PayloadUUID</key>
+	<string>${id2}</string>
+	<key>PayloadVersion</key>
+	<integer>1</integer>
+</dict>
+</plist>`;
+
+  const blob = new Blob([vpnXML], { type: 'application/x-apple-aspen-config' });
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `${profileName}.mobileconfig`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  window.URL.revokeObjectURL(url);
+};
+
 const ShieldSection = ({ isActive, toggle, count, isUltraMode }: any) => {
   const handleActivate = () => {
     installDNSProfile();
@@ -431,19 +526,32 @@ const ShieldSection = ({ isActive, toggle, count, isUltraMode }: any) => {
              </div>
           </div>
 
-          <button 
-            onClick={handleActivate}
-            className={cn(
-              "w-full h-16 rounded-2xl font-bold flex items-center justify-center gap-3 transition-all relative overflow-hidden",
-              isActive 
-                ? (isUltraMode ? "bg-neonGreen text-black" : "bg-yellow-500 text-black shadow-lg") 
-                : "bg-white/5 border border-white/10 hover:bg-white/10"
-            )}
-          >
-            {isActive && <motion.div animate={{ x: ['100%', '-100%'] }} transition={{ duration: 2, repeat: Infinity }} className="absolute inset-0 bg-white/20 skew-x-12" />}
-            <Zap className={cn("w-5 h-5", isActive && "animate-pulse")} />
-            <span>{isActive ? "إيقاف الدرع" : "تفعيل حاجب الإعلانات (تثبيت)"}</span>
-          </button>
+          <div className="flex flex-col gap-3 w-full">
+            <button 
+              onClick={handleActivate}
+              className={cn(
+                "w-full h-14 rounded-2xl font-bold flex items-center justify-center gap-3 transition-all relative overflow-hidden",
+                isActive 
+                  ? (isUltraMode ? "bg-neonGreen text-black" : "bg-yellow-500 text-black shadow-lg") 
+                  : "bg-white/5 border border-white/10 hover:bg-white/10"
+              )}
+            >
+              {isActive && <motion.div animate={{ x: ['100%', '-100%'] }} transition={{ duration: 2, repeat: Infinity }} className="absolute inset-0 bg-white/20 skew-x-12" />}
+              <Zap className={cn("w-5 h-5", isActive && "animate-pulse")} />
+              <span>{isActive ? "إيقاف الدرع" : "تفعيل حاجب الإعلانات (DNS)"}</span>
+            </button>
+
+            <button 
+              onClick={generateVPNProfile}
+              className={cn(
+                "w-full h-14 rounded-2xl font-bold flex items-center justify-center gap-3 transition-all relative overflow-hidden border border-white/10",
+                isUltraMode ? "bg-transparent text-neonGreen hover:bg-neonGreen/10" : "bg-transparent text-white hover:bg-white/5"
+              )}
+            >
+              <Globe className="w-5 h-5 opacity-60" />
+              <span>توليد شبكة Stealth VPN السرية</span>
+            </button>
+          </div>
           
           {isActive && (
             <motion.p 
@@ -451,7 +559,7 @@ const ShieldSection = ({ isActive, toggle, count, isUltraMode }: any) => {
               animate={{ opacity: 1 }}
               className="text-[10px] text-yellow-500 font-bold mt-4"
             >
-              ملاحظة: اذهب للإعدادات لتثبيت ملف التعريف (DNS Profile)
+              ملاحظة: اذهب للإعدادات لتثبيت ملفات التعريف (Settings &gt; Profile Downloaded)
             </motion.p>
           )}
        </GlassCard>
@@ -791,8 +899,8 @@ export default function App() {
                   </div>
                )}
 
-               {activeTab === 'files' && (
-                  <FilesSection 
+               {activeTab === 'clean' && (
+                  <PhotoCleanerSection 
                     onClean={startCleaning}
                     isCleaning={isCleaning}
                     isUltraMode={isUltraMode}
@@ -817,34 +925,51 @@ export default function App() {
                   />
                )}
 
-               {activeTab === 'ai' && (
+               {activeTab === 'vault' && (
                   <div className={cn("flex flex-col gap-6 font-cairo text-right", isUltraMode && "text-neonGreen")}>
-                     <GlassCard className={cn("p-12 text-center min-h-[450px] flex flex-col items-center justify-center gap-8", isUltraMode && "border-neonGreen/20 bg-black")} isUltraMode={isUltraMode} glowColor={isUltraMode ? "" : "blue"}>
-                        <div className="relative">
-                           <div className={cn("w-28 h-28 rounded-[2.5rem] flex items-center justify-center border relative", isUltraMode ? "bg-neonGreen/10 border-neonGreen/40 shadow-neonGreen/30" : "bg-neonBlue/10 border-neonBlue/40 shadow-neonBlue/20")}>
-                              <BrainCircuit className={cn("w-12 h-12", isUltraMode ? "text-neonGreen" : "text-neonBlue")} />
-                              <motion.div 
-                                animate={{ scale: [1, 1.4, 1], opacity: [0.3, 0, 0.3] }}
-                                transition={{ duration: 3, repeat: Infinity }}
-                                className={cn("absolute inset-0 rounded-[2.5rem]", isUltraMode ? "bg-neonGreen shadow-neonGreen/50" : "bg-neonBlue shadow-neonBlue/50")} 
-                              />
+                     <GlassCard className={cn("p-10 min-h-[500px] flex flex-col", isUltraMode && "border-neonGreen/20 bg-black")} isUltraMode={isUltraMode} glowColor={isUltraMode ? "" : "purple"}>
+                        <div className="flex justify-between items-center mb-8">
+                           <PremiumBadge label="AES-256 Vault" isUltraMode={isUltraMode} />
+                           <StatusBadge active={true} label="Protected" isUltraMode={isUltraMode} />
+                        </div>
+                        
+                        <div className="flex-1 flex flex-col items-center justify-center">
+                           {/* FaceID Scanner Simulator */}
+                           <div className="relative mb-8 group cursor-pointer" onClick={() => alert('FaceID Simulated Success')}>
+                              <div className={cn("w-32 h-32 rounded-[3rem] border-2 flex items-center justify-center relative overflow-hidden", isUltraMode ? "border-neonGreen/30" : "border-white/10")}>
+                                 <ScanFace className={cn("w-16 h-16 z-10", isUltraMode ? "text-neonGreen" : "text-white/60 group-hover:text-white transition-colors")} strokeWidth={1.5} />
+                                 <motion.div 
+                                   animate={{ y: [-45, 45, -45] }}
+                                   transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                                   className={cn("absolute left-0 right-0 h-[3px] shadow-[0_0_20px_4px] blur-[1px] z-20", isUltraMode ? "bg-neonGreen shadow-neonGreen/50" : "bg-neonBlue shadow-neonBlue/50")}
+                                 />
+                              </div>
+                              <div className="absolute inset-0 rounded-[3rem] border border-white/20 animate-ping opacity-20" />
+                           </div>
+
+                           <h3 className="text-2xl font-black mb-2">الخزنة السرية المشفرة</h3>
+                           <p className="text-xs opacity-50 px-6 text-center leading-relaxed">
+                              حماية بياناتك الحساسة بأقوى خوارزميات التشفير العسكري. لا يمكن لأحد الوصول للملفات سوى من خلال مصادقة بصمة الوجه (FaceID).
+                           </p>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3 mt-8">
+                           <div className="p-4 rounded-3xl bg-white/5 border border-white/5 flex flex-col items-center text-center opacity-40 hover:opacity-100 transition-opacity cursor-not-allowed">
+                             <Database className="w-8 h-8 mb-3 opacity-60" />
+                             <span className="text-sm font-bold">الصور والفيديو</span>
+                             <span className="text-[9px]">مغلق</span>
+                           </div>
+                           <div className="p-4 rounded-3xl bg-white/5 border border-white/5 flex flex-col items-center text-center opacity-40 hover:opacity-100 transition-opacity cursor-not-allowed">
+                             <Lock className="w-8 h-8 mb-3 opacity-60" />
+                             <span className="text-sm font-bold">الملاحظات السرية</span>
+                             <span className="text-[9px]">مغلق</span>
                            </div>
                         </div>
-                        <div>
-                           <h3 className="text-3xl font-black tracking-tight mb-2">الاستثمار الذكي.</h3>
-                           <p className="text-xs opacity-40 px-8 leading-relaxed">الذكاء الاصطناعي يحلل هاتفك الآن لتقديم أفضل تجربة أداء ممكنة.</p>
-                        </div>
-                        <div className={cn("w-full p-6 rounded-[2rem] border flex gap-4 text-sm font-medium", isUltraMode ? "bg-neonGreen/10 border-neonGreen/20" : "bg-white/5 border-white/10")}>
-                           <p className="flex-1 opacity-70">
-                              {isUltraMode ? "الوضع الفائق يحد من ذكاء النظام لتوفير الطاقة." : "تم ملاحظة استهلاك عالٍ في تطبيقات التواصل. قم ببدء التحليل الشامل."}
-                           </p>
-                           <Info className={cn("w-6 h-6 shrink-0", isUltraMode ? "text-neonGreen" : "text-neonBlue")} />
-                        </div>
-                        {!isUltraMode && (
-                           <button className="w-full py-5 bg-white text-black font-black font-orbitron rounded-[2rem] text-[10px] tracking-[0.4em] uppercase shadow-2xl hover:scale-[1.02] transition-transform">
-                              Start AI Deep Scan
-                           </button>
-                        )}
+
+                        <button className={cn("w-full h-16 mt-6 rounded-[2rem] font-bold font-orbitron uppercase tracking-widest flex items-center justify-center gap-3 transition-transform active:scale-95 text-[10px]", isUltraMode ? "bg-neonGreen text-black" : "bg-white text-black")}>
+                           <Fingerprint className="w-5 h-5" />
+                           Authenticate to Unlock
+                        </button>
                      </GlassCard>
                   </div>
                )}
@@ -861,10 +986,10 @@ export default function App() {
             {[
               { id: 'boost', icon: Cpu, label: 'تسريع' },
               { id: 'battery', icon: Bolt, label: 'بطارية' },
-              { id: 'files', icon: HardDrive, label: 'ملفات' },
+              { id: 'clean', icon: Camera, label: 'تنظيف' },
               { id: 'network', icon: Wifi, label: 'إنترنت' },
               { id: 'shield', icon: ShieldCheck, label: 'درع' },
-              { id: 'ai', icon: BrainCircuit, label: 'ذكاء' },
+              { id: 'vault', icon: Lock, label: 'خزنة' },
             ].map((item) => (
               <button
                 key={item.id}
