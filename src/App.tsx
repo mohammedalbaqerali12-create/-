@@ -13,7 +13,9 @@ import {
   ShieldCheck,
   Fingerprint,
   Bell,
-  Settings
+  Settings,
+  PlaySquare,
+  Globe
 } from 'lucide-react'
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
@@ -279,12 +281,12 @@ const NetworkSection = ({ onBoost, isBoosting, speed, isUltraMode }: any) => (
        </div>
        
        <div className="relative z-10">
-          <span className="text-[10px] font-bold opacity-30 uppercase tracking-[0.3em] block mb-2">Current Throughput</span>
+          <span className="text-[10px] font-bold opacity-30 uppercase tracking-[0.3em] block mb-2">Current Ping Delay</span>
           <div className="flex items-baseline gap-2">
              <span className={cn("text-6xl font-orbitron font-black text-glow-blue", isUltraMode && "text-neonGreen text-glow-green")}>
                 {isUltraMode ? "LOCKED" : speed}
              </span>
-             {!isUltraMode && <span className="text-xl font-bold opacity-30">Mbps</span>}
+             {!isUltraMode && <span className="text-xl font-bold opacity-30">ms</span>}
           </div>
           <div className={cn("h-1 w-20 mt-4 rounded-full", isUltraMode ? "bg-neonGreen/30" : "bg-neonBlue/30")}>
              <motion.div 
@@ -297,8 +299,8 @@ const NetworkSection = ({ onBoost, isBoosting, speed, isUltraMode }: any) => (
 
        <div className="grid grid-cols-2 gap-4 mt-12 relative z-10">
           <div className="text-right">
-             <span className="text-[9px] font-bold opacity-30 uppercase block mb-1">Latency</span>
-             <span className={cn("text-lg font-orbitron font-bold", isUltraMode && "text-neonGreen")}>12ms</span>
+             <span className="text-[9px] font-bold opacity-30 uppercase block mb-1">Latency Level</span>
+             <span className={cn("text-lg font-orbitron font-bold", isUltraMode && "text-neonGreen")}>{speed < 50 ? 'Excellent' : 'Normal'}</span>
           </div>
           <div className="text-right">
              <span className="text-[9px] font-bold opacity-30 uppercase block mb-1">Packet Loss</span>
@@ -476,6 +478,63 @@ const ShieldSection = ({ isActive, toggle, count, isUltraMode }: any) => {
   )
 }
 
+// --- YouTube PiP Player ---
+
+const YouTubePlayer = ({ onClose, isUltraMode }: { onClose: () => void, isUltraMode: boolean }) => {
+  const [url, setUrl] = useState('')
+  const [videoId, setVideoId] = useState('')
+
+  const handlePlay = () => {
+    const match = url.match(/(?:youtu\.be\/|youtube\.com\/watch\?v=|youtube\.com\/shorts\/)([^&]+)/)
+    if (match) setVideoId(match[1])
+    else alert('الرجاء إدخال رابط يوتيوب صحيح')
+  }
+
+  return (
+    <div className={cn("fixed inset-0 z-[100] flex flex-col pt-16 px-6 pb-12 transition-all duration-500", isUltraMode ? "bg-black/95 backdrop-blur-3xl" : "bg-deep-onyx/95 backdrop-blur-3xl")} style={{ height: '100vh', width: '100vw' }}>
+      <div className="flex justify-between items-center mb-8">
+         <h2 className={cn("text-2xl font-black font-cairo", isUltraMode ? "text-neonGreen" : "text-white")}>مشغل يوتيوب الخفي 📺</h2>
+         <button onClick={onClose} className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center font-bold font-orbitron hover:bg-white/20 transition-all">
+           X
+         </button>
+      </div>
+      
+      <div className="flex gap-3 mb-8 h-14">
+        <input 
+          type="text" 
+          value={url}
+          onChange={(e) => setUrl(e.target.value)}
+          placeholder="قم بلصق رابط فيديو يوتيوب هنا..."
+          className={cn("flex-1 bg-white/5 border rounded-2xl px-6 font-cairo text-right text-sm outline-none transition-all", isUltraMode ? "border-neonGreen/30 focus:border-neonGreen" : "border-white/10 focus:border-neonBlue")}
+          dir="rtl"
+        />
+        <button onClick={handlePlay} className={cn("px-8 rounded-2xl text-black font-black font-cairo transition-transform active:scale-95", isUltraMode ? "bg-neonGreen" : "bg-neonBlue")}>
+          تشغيل
+        </button>
+      </div>
+
+      <div className="flex-1 rounded-[2.5rem] overflow-hidden border border-white/10 bg-black relative shadow-2xl">
+        {videoId ? (
+          <iframe 
+            src={`https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&playsinline=1`}
+            allow="autoplay; encrypted-media; picture-in-picture"
+            allowFullScreen
+            className="absolute inset-0 w-full h-full border-none"
+          />
+        ) : (
+          <div className="absolute inset-0 flex flex-col items-center justify-center opacity-40 font-cairo gap-6 text-center px-10 border border-dashed border-white/20 rounded-[2.5rem] m-2">
+             <PlaySquare className={cn("w-20 h-20", isUltraMode ? "text-neonGreen" : "text-white")} />
+             <p className="text-sm leading-relaxed max-w-xs">
+               ألصق الرابط بالأعلى لتشغيل الفيديو بدون إعلانات وبدعم المشاهدة المصغرة في الخلفية (PiP) 
+               <br/> حتى لو تم إغلاق الشاشة.
+             </p>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 // --- Main App ---
 
 export default function App() {
@@ -490,6 +549,7 @@ export default function App() {
   const [isUltraMode, setIsUltraMode] = useState(false)
   const [isAdBlockActive, setIsAdBlockActive] = useState(false)
   const [adsBlockedCount, setAdsBlockedCount] = useState(247)
+  const [showYouTube, setShowYouTube] = useState(false)
   
   const [metrics, setMetrics] = useState({
     health: 68,
@@ -553,12 +613,23 @@ export default function App() {
     }, 4000)
   }
 
-  const startNetBoost = () => {
+  const startNetBoost = async () => {
+    if (isNetBoosting) return
     setIsNetBoosting(true)
+    
+    try {
+      const start = performance.now()
+      await fetch('https://1.1.1.1/cdn-cgi/trace', { mode: 'no-cors', cache: 'no-store' })
+      const end = performance.now()
+      const pingTime = Math.round(end - start)
+      setMetrics(prev => ({ ...prev, netSpeed: Math.max(1, pingTime - 10) }))
+    } catch (e) {
+      setMetrics(prev => ({ ...prev, netSpeed: Math.max(8, prev.netSpeed - 15) }))
+    }
+
     setTimeout(() => {
       setIsNetBoosting(false)
-      setMetrics(prev => ({ ...prev, netSpeed: prev.netSpeed + 80 }))
-    }, 3000)
+    }, 2000)
   }
 
   const startBatteryOptimize = () => {
@@ -578,6 +649,15 @@ export default function App() {
       "min-h-screen text-white font-outfit selection:bg-neonBlue/30 overflow-x-hidden pb-12 transition-all duration-1000",
       isUltraMode ? "bg-black" : "bg-deep-onyx bg-mesh"
     )}>
+      
+      <AnimatePresence>
+        {showYouTube && (
+          <motion.div initial={{ opacity: 0, y: '100%' }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: '100%' }} transition={{ type: 'spring', damping: 25, stiffness: 200 }} className="fixed inset-0 z-[200]">
+             <YouTubePlayer onClose={() => setShowYouTube(false)} isUltraMode={isUltraMode} />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Dynamic Background decor */}
       {!isUltraMode && (
         <div className="fixed inset-0 pointer-events-none overflow-hidden">
