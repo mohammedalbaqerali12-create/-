@@ -1,4 +1,4 @@
-name: Build NEURAL BOOST X
+name: Build NEURAL BOOST X (Capacitor Native)
 
 on:
   push:
@@ -8,38 +8,41 @@ on:
 
 jobs:
   build:
-    name: Build iOS App
+    name: Build iOS IPA
     runs-on: macos-latest
     
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
         
-      - name: Select Xcode Version
-        run: sudo xcode-select -s /Applications/Xcode_15.2.app
-        
-      - name: Setup Project Structure
-        run: |
-          mkdir -p NEURAL_BOOST_X.xcodeproj
-          # Minimal project file generation logic could go here if needed, 
-          # but usually we'd have the .xcodeproj in the repo.
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
           
-      - name: Build for Simulator
+      - name: Install Dependencies
+        run: npm install
+        
+      - name: Build Web Application
+        run: npm run build
+        
+      - name: Capacitor Sync
         run: |
-          xcodebuild build \
-            -scheme NEURAL_BOOST_X \
-            -destination 'platform=iOS Simulator,name=iPhone 15,OS=17.2' \
-            -configuration Debug
+          npx cap add ios
+          npx cap sync ios
+          
+      - name: Build iOS Archive
+        run: |
+          xcodebuild archive \
+            -workspace ios/App/App.xcworkspace \
+            -scheme App \
+            -configuration Debug \
+            -archivePath NEURAL_BOOST_X.xcarchive \
+            -destination 'generic/platform=iOS' \
+            CODE_SIGNING_ALLOWED=NO
             
-      - name: Archive and Export (IPA)
-        # Note: Requires Signing Certificates/Profiles in Secrets
-        if: github.event_with_type == 'push'
-        run: |
-          echo "Building unsigned .xcarchive for artifacts..."
-          xcodebuild archive -project NEURAL_BOOST_X.xcodeproj -scheme NEURAL_BOOST_X -archivePath NEURAL_BOOST_X.xcarchive
-
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: neural-boost-x-build
+          name: neural-boost-x-capacitor-ios
           path: NEURAL_BOOST_X.xcarchive
