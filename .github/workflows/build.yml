@@ -43,8 +43,14 @@ jobs:
             -destination 'generic/platform=iOS' \
             CODE_SIGNING_ALLOWED=NO
             
+      - name: Package IPA
+        run: |
+          mkdir Payload
+          cp -r NEURAL_BOOST_X.xcarchive/Products/Applications/App.app Payload/
+          zip -r NEURAL_BOOST_X.ipa Payload
+
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: neural-boost-x-capacitor-ios
-          path: NEURAL_BOOST_X.xcarchive
+          name: neural-boost-x-ipa
+          path: NEURAL_BOOST_X.ipa
