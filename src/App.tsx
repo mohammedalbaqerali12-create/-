@@ -12,6 +12,8 @@ import {
   Activity,
   HardDrive,
   Rocket,
+  ShieldCheck,
+  Fingerprint,
   Bell,
   Settings
 } from 'lucide-react'
@@ -23,7 +25,7 @@ function cn(...inputs: ClassValue[]) {
 }
 
 // --- Types ---
-type TabType = 'boost' | 'battery' | 'files' | 'network' | 'ai'
+type TabType = 'boost' | 'battery' | 'files' | 'network' | 'shield' | 'ai'
 
 // --- Shared Components ---
 
@@ -33,6 +35,7 @@ const GlassCard = ({ children, className, glowColor, isUltraMode }: { children: 
     !isUltraMode && glowColor === 'blue' && "neon-border-blue",
     !isUltraMode && glowColor === 'green' && "neon-border-green",
     !isUltraMode && glowColor === 'purple' && "neon-border-purple",
+    !isUltraMode && glowColor === 'gold' && "border-yellow-500/20 shadow-[0_0_15px_rgba(234,179,8,0.1)]",
     isUltraMode && "border-neonGreen/30 bg-black/80",
     className
   )}>
@@ -396,6 +399,82 @@ const NetworkSection = ({ onBoost, isBoosting, speed, isUltraMode }: any) => (
   </div>
 )
 
+const ShieldSection = ({ isActive, toggle, count, isUltraMode }: any) => (
+  <div className="flex flex-col gap-6 font-cairo">
+     <GlassCard className={cn("p-8 text-center", isUltraMode ? "border-neonGreen/20" : "border-yellow-500/20")} glowColor={isActive ? 'gold' : ''} isUltraMode={isUltraMode}>
+        <div className="relative flex justify-center mb-6">
+           <motion.div 
+             animate={isActive ? { scale: [1, 1.1, 1], rotate: [0, 5, -5, 0] } : {}}
+             transition={{ duration: 4, repeat: Infinity }}
+             className={cn("p-6 rounded-3xl border shadow-2xl", isActive ? (isUltraMode ? "bg-neonGreen/10 border-neonGreen/40 text-neonGreen shadow-neonGreen/20" : "bg-yellow-500/10 border-yellow-500/30 text-yellow-500 shadow-yellow-500/10") : "bg-white/5 border-white/10 opacity-30")}
+           >
+              <ShieldCheck className="w-16 h-16" />
+           </motion.div>
+           {isActive && (
+             <motion.div 
+               initial={{ scale: 0 }}
+               animate={{ scale: 1 }}
+               className="absolute -top-2 -right-2 bg-neonGreen text-black text-[10px] font-bold px-2 py-1 rounded-full shadow-lg"
+             >
+               SECURE
+             </motion.div>
+           )}
+        </div>
+
+        <h3 className={cn("text-xl font-bold mb-1", isUltraMode && "text-neonGreen")}>درع الحماية الشامل</h3>
+        <p className="text-[11px] opacity-50 mb-6 mx-auto max-w-[200px]">حجب إعلانات يوتيوب، المواقع المشبوهة، ومنع التتبع الرقمي.</p>
+
+        <div className="grid grid-cols-2 gap-3 mb-6">
+           <div className={cn("p-3 rounded-2xl border transition-all", isActive ? (isUltraMode ? "border-neonGreen/20 bg-neonGreen/5" : "border-yellow-500/20 bg-yellow-500/5") : "border-white/5 bg-white/5 opacity-50")}>
+              <span className="text-[9px] block opacity-40 uppercase mb-1">إعلانات محجوبة</span>
+              <span className={cn("text-lg font-orbitron font-bold", isActive && (isUltraMode ? "text-neonGreen" : "text-yellow-500"))}>
+                {count}
+              </span>
+           </div>
+           <div className={cn("p-3 rounded-2xl border transition-all", isActive ? (isUltraMode ? "border-neonGreen/20 bg-neonGreen/5" : "border-yellow-500/20 bg-yellow-500/5") : "border-white/5 bg-white/5 opacity-50")}>
+              <span className="text-[9px] block opacity-40 uppercase mb-1">فلتر يوتيوب</span>
+              <span className={cn("text-lg font-bold", isActive && (isUltraMode ? "text-neonGreen" : "text-yellow-500"))}>
+                {isActive ? "نشط" : "متوقف"}
+              </span>
+           </div>
+        </div>
+
+        <button 
+          onClick={toggle}
+          className={cn(
+            "w-full h-16 rounded-2xl font-bold flex items-center justify-center gap-3 transition-all relative overflow-hidden",
+            isActive 
+              ? (isUltraMode ? "bg-neonGreen text-black" : "bg-yellow-500 text-black shadow-lg") 
+              : "bg-white/5 border border-white/10 hover:bg-white/10"
+          )}
+        >
+          {isActive && <motion.div animate={{ x: ['100%', '-100%'] }} transition={{ duration: 2, repeat: Infinity }} className="absolute inset-0 bg-white/20 skew-x-12" />}
+          <Zap className={cn("w-5 h-5", isActive && "animate-pulse")} />
+          <span>{isActive ? "إيقاف الدرع" : "تفعيل حاجب الإعلانات"}</span>
+        </button>
+     </GlassCard>
+
+     <div className="space-y-3">
+        <h4 className="text-xs font-bold opacity-40 px-2 uppercase tracking-widest text-right">المميزات المفعلة</h4>
+        {[
+          { name: "حجب إعلانات يوتيوب", desc: "نظام منع ملفات التتبع (Tracker Zero)", icon: Rocket },
+          { name: "تشفير بيانات التصفح", desc: "إخفاء هويتك الرقمية (Simulated VPN)", icon: Fingerprint },
+          { name: "جدار حماية قوي", desc: "منع النوافذ المنبثقة المزعجة", icon: ShieldCheck },
+        ].map((item, i) => (
+          <div key={i} className={cn("glass rounded-2xl p-4 flex items-center justify-between border-white/5", !isActive && "opacity-30")}>
+            <div className="text-right flex-1 pr-4">
+              <span className={cn("text-sm font-bold block", isActive && "text-neonGreen")}>{item.name}</span>
+              <span className="text-[10px] opacity-40">{item.desc}</span>
+            </div>
+            <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center", isActive ? "bg-neonGreen/10 text-neonGreen" : "bg-white/5 opacity-50")}>
+              <item.icon className="w-5 h-5" />
+            </div>
+          </div>
+        ))}
+     </div>
+  </div>
+)
+
 // --- Main App ---
 
 export default function App() {
@@ -408,6 +487,8 @@ export default function App() {
   const [isNetBoosting, setIsNetBoosting] = useState(false)
   const [isOptimizingBattery, setIsOptimizingBattery] = useState(false)
   const [isUltraMode, setIsUltraMode] = useState(false)
+  const [isAdBlockActive, setIsAdBlockActive] = useState(false)
+  const [adsBlockedCount, setAdsBlockedCount] = useState(247)
   
   const [metrics, setMetrics] = useState({
     health: 68,
@@ -427,9 +508,13 @@ export default function App() {
         ram: isUltraMode ? 15 : Math.max(30, Math.min(90, prev.ram + (Math.random() - 0.5) * 5)),
         temp: isUltraMode ? 28 : Math.max(30, Math.min(55, prev.temp + (Math.random() - 0.5) * 2))
       }))
+
+      if (isAdBlockActive) {
+        setAdsBlockedCount(prev => prev + Math.floor(Math.random() * 2))
+      }
     }, 3000)
     return () => clearInterval(timer)
-  }, [isUltraMode])
+  }, [isUltraMode, isAdBlockActive])
 
   const startBoost = () => {
     if (isBoosting) return
@@ -656,6 +741,15 @@ export default function App() {
                   />
                )}
 
+               {activeTab === 'shield' && (
+                  <ShieldSection 
+                    isActive={isAdBlockActive}
+                    toggle={() => setIsAdBlockActive(!isAdBlockActive)}
+                    count={adsBlockedCount}
+                    isUltraMode={isUltraMode}
+                  />
+               )}
+
                {activeTab === 'ai' && (
                   <div className={cn("flex flex-col gap-6 font-cairo text-right", isUltraMode && "text-neonGreen")}>
                      <GlassCard className={cn("p-8 text-center min-h-[400px] flex flex-col items-center justify-center gap-6", isUltraMode && "border-neonGreen/20 bg-black")} isUltraMode={isUltraMode}>
@@ -700,6 +794,7 @@ export default function App() {
               { id: 'battery', icon: Bolt, label: 'بطارية' },
               { id: 'files', icon: HardDrive, label: 'ملفات' },
               { id: 'network', icon: Wifi, label: 'إنترنت' },
+              { id: 'shield', icon: ShieldCheck, label: 'درع' },
               { id: 'ai', icon: BrainCircuit, label: 'ذكاء' },
             ].map((item) => (
               <button
