@@ -5,11 +5,9 @@ import {
   BrainCircuit, 
   Bolt, 
   Wifi, 
-  Layers, 
   Trash2, 
   Info,
   Zap,
-  Activity,
   HardDrive,
   Rocket,
   ShieldCheck,
@@ -31,16 +29,26 @@ type TabType = 'boost' | 'battery' | 'files' | 'network' | 'shield' | 'ai'
 
 const GlassCard = ({ children, className, glowColor, isUltraMode }: { children: React.ReactNode, className?: string, glowColor?: string, isUltraMode?: boolean }) => (
   <div className={cn(
-    "glass-card rounded-[2rem] p-5 relative overflow-hidden group transition-all duration-500",
-    !isUltraMode && glowColor === 'blue' && "neon-border-blue",
-    !isUltraMode && glowColor === 'green' && "neon-border-green",
-    !isUltraMode && glowColor === 'purple' && "neon-border-purple",
-    !isUltraMode && glowColor === 'gold' && "border-yellow-500/20 shadow-[0_0_15px_rgba(234,179,8,0.1)]",
-    isUltraMode && "border-neonGreen/30 bg-black/80",
+    "glass-card rounded-[2.5rem] p-6 relative overflow-hidden group transition-all duration-700",
+    !isUltraMode && glowColor === 'blue' && "neon-border-blue border-neonBlue/20 shadow-[0_0_30px_rgba(0,210,255,0.05)]",
+    !isUltraMode && glowColor === 'green' && "neon-border-green border-neonGreen/20 shadow-[0_0_30px_rgba(57,255,20,0.05)]",
+    !isUltraMode && glowColor === 'purple' && "neon-border-purple border-neonPurple/20 shadow-[0_0_30px_rgba(157,80,187,0.05)]",
+    !isUltraMode && glowColor === 'gold' && "border-yellow-500/30 shadow-[0_0_30px_rgba(234,179,8,0.05)]",
+    isUltraMode && "border-neonGreen/20 bg-black/90",
     className
   )}>
-    <div className={cn("absolute inset-0 pointer-events-none group-hover:bg-white/[0.05] transition-colors", isUltraMode ? "bg-neonGreen/[0.02]" : "bg-white/[0.02]")} />
+    <div className="absolute inset-0 bg-gradient-to-br from-white/[0.03] to-transparent opacity-50 pointer-events-none" />
+    <div className={cn("absolute inset-0 pointer-events-none bg-white/[0.01] group-hover:bg-white/[0.04] transition-all duration-500")} />
     {children}
+  </div>
+)
+
+const PremiumBadge = ({ label, isUltraMode }: { label: string, isUltraMode?: boolean }) => (
+  <div className={cn(
+    "px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-[0.2em] font-orbitron",
+    isUltraMode ? "bg-neonGreen/10 text-neonGreen border border-neonGreen/30" : "bg-white/5 text-white/40 border border-white/10"
+  )}>
+    {label}
   </div>
 )
 
@@ -56,109 +64,81 @@ const StatusBadge = ({ active, label, isUltraMode }: { active: boolean, label: s
   </div>
 )
 
-const MetricDisk = ({ progress, label, value, color, isUltraMode }: { progress: number, label: string, value: string, color: string, isUltraMode?: boolean }) => {
-  const radius = 35
-  const circumference = 2 * Math.PI * radius
-  const offset = circumference - (progress / 100) * circumference
-
-  return (
-    <div className="flex flex-col items-center gap-2">
-      <div className="relative w-20 h-20 flex items-center justify-center">
-        <svg className="w-full h-full transform -rotate-90">
-          <circle cx="40" cy="40" r={radius} stroke="currentColor" strokeWidth="4" fill="transparent" className={isUltraMode ? "text-neonGreen/5" : "text-white/5"} />
-          <motion.circle 
-            cx="40" cy="40" r={radius} stroke={isUltraMode ? "#39ff14" : color} strokeWidth="4" fill="transparent"
-            strokeDasharray={circumference}
-            initial={{ strokeDashoffset: circumference }}
-            animate={{ strokeDashoffset: offset }}
-            transition={{ duration: 1.5, ease: "easeOut" }}
-            strokeLinecap="round"
-          />
-        </svg>
-        <span className={cn("absolute font-orbitron text-xs font-bold", isUltraMode && "text-neonGreen")}>{value}</span>
-      </div>
-      <span className={cn("text-[10px] font-bold opacity-50 font-cairo text-center", isUltraMode && "text-neonGreen/50")}>{label}</span>
-    </div>
-  )
-}
 
 // --- UI Sections ---
 
 const OptimizationSection = ({ onBoost, isBoosting, progress, status, metrics, isUltraMode }: any) => (
-  <div className="flex flex-col gap-6">
-    <div className="relative h-64 flex items-center justify-center">
-      <div className={cn("absolute w-[200px] h-[200px] rounded-full border flex items-center justify-center", isUltraMode ? "border-neonGreen/10" : "border-white/5")}>
-         <div className={cn("absolute w-[180px] h-[180px] rounded-full border", isUltraMode ? "border-neonGreen/20" : "border-white/10")} />
-         <motion.div 
-           animate={{ rotate: 360 }}
-           transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
-           className={cn("absolute inset-0 rounded-full border-t-2 opacity-30", isUltraMode ? "border-neonGreen" : "border-neonBlue")} 
-         />
-      </div>
-
-      <div className="relative flex flex-col items-center text-center">
-        <motion.div
-           animate={isBoosting ? { scale: [1, 1.05, 1] } : {}}
-           transition={{ duration: 2, repeat: Infinity }}
-           className="relative"
-        >
-          <span className={cn("text-7xl font-orbitron font-black block tracking-tighter", isUltraMode && "text-neonGreen")}>
-            {Math.floor(isBoosting ? (progress * 100) : metrics.health)}
-            <span className={cn("text-2xl ml-1", isUltraMode ? "text-neonGreen" : "text-neonBlue")}>%</span>
-          </span>
-          <div className={cn("h-1 w-24 mx-auto mt-2", isUltraMode ? "bg-gradient-to-r from-transparent via-neonGreen to-transparent" : "bg-gradient-to-r from-transparent via-neonBlue to-transparent")} />
-        </motion.div>
-        
-        <div className="mt-4">
-          <span className={cn("text-[10px] font-bold tracking-[0.3em] font-orbitron block", isUltraMode ? "text-neonGreen" : "text-neonBlue")}>
-            {isBoosting ? "AI CORE OPTIMIZING..." : (isUltraMode ? "ULTRA POWER STATE" : "SYSTEM HEALTH CORE")}
-          </span>
-          <span className={cn("text-[12px] font-cairo font-bold opacity-60 mt-1 block", isUltraMode && "text-neonGreen/60")}>
-             حالة النظام: {isBoosting ? "جاري المعالجة النبضية" : (isUltraMode ? "توفير فائق" : "مستقر ومؤمن")}
-          </span>
-        </div>
-      </div>
-      
-      {isBoosting && <div className={cn("scan-line", isUltraMode && "bg-neonGreen/30 shadow-[0_0_15px_#39ff14]")} />}
+  <div className="flex flex-col gap-6 font-cairo">
+    <div className="flex justify-between items-center mb-2">
+       <PremiumBadge label={isUltraMode ? "ULTRA" : "PRO"} isUltraMode={isUltraMode} />
+       <div className="flex items-center gap-2">
+          <span className={cn("text-[10px] font-bold opacity-40 uppercase tracking-widest", isUltraMode && "text-neonGreen")}>System Status</span>
+          <div className={cn("w-2 h-2 rounded-full", isBoosting ? "bg-neonGreen animate-pulse" : (isUltraMode ? "bg-neonGreen/40" : "bg-neonBlue"))} />
+       </div>
     </div>
 
-    <div className="grid grid-cols-3 gap-2">
-      <MetricDisk progress={metrics.cpu} label="المعالج" value={`${Math.round(metrics.cpu)}%`} color="#00d2ff" isUltraMode={isUltraMode} />
-      <MetricDisk progress={metrics.ram} label="الذاكرة" value={`${Math.round(metrics.ram)}%`} color="#9d50bb" isUltraMode={isUltraMode} />
-      <MetricDisk progress={metrics.temp} label="الحرارة" value={`${Math.round(metrics.temp)}°`} color={metrics.temp > 45 ? "#ff3131" : "#39ff14"} isUltraMode={isUltraMode} />
-    </div>
+    <GlassCard className="p-10 flex flex-col items-center justify-center min-h-[320px]" glowColor={isUltraMode ? "" : "blue"} isUltraMode={isUltraMode}>
+       <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+       
+       <div className="relative mb-8">
+          <div className={cn("w-48 h-48 rounded-full border-2 flex items-center justify-center", isUltraMode ? "border-neonGreen/10" : "border-white/5")}>
+             <motion.div 
+               animate={{ rotate: 360 }}
+               transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
+               className={cn("absolute inset-0 rounded-full border-2 border-dashed opacity-20", isUltraMode ? "border-neonGreen" : "border-neonBlue")}
+             />
+             <div className="text-center group-hover:scale-105 transition-transform duration-700">
+                <span className={cn("text-7xl font-orbitron font-black text-glow-blue block", isUltraMode && "text-neonGreen text-glow-green")}>
+                   {Math.floor(isBoosting ? (progress * 100) : metrics.health)}
+                   <span className="text-2xl ml-1 opacity-40">%</span>
+                </span>
+                <span className={cn("text-[9px] font-orbitron font-black uppercase tracking-[0.4em] opacity-40 block mt-2", isUltraMode && "text-neonGreen")}>
+                   Core Health
+                </span>
+             </div>
+          </div>
+          {isBoosting && <div className={cn("scan-line", isUltraMode && "bg-neonGreen")} />}
+       </div>
+
+       <div className="flex gap-8 justify-center w-full">
+          <div className="text-center">
+             <span className={cn("text-lg font-orbitron font-bold block", isUltraMode && "text-neonGreen")}>{Math.round(metrics.cpu)}%</span>
+             <span className="text-[9px] font-bold uppercase opacity-30 tracking-widest">CPU</span>
+          </div>
+          <div className="w-[1px] h-8 bg-white/10" />
+          <div className="text-center">
+             <span className={cn("text-lg font-orbitron font-bold block", isUltraMode && "text-neonGreen")}>{Math.round(metrics.ram)}%</span>
+             <span className="text-[9px] font-bold uppercase opacity-30 tracking-widest">RAM</span>
+          </div>
+          <div className="w-[1px] h-8 bg-white/10" />
+          <div className="text-center">
+             <span className={cn("text-lg font-orbitron font-bold block", isUltraMode && "text-neonGreen")}>{Math.round(metrics.temp)}°C</span>
+             <span className="text-[9px] font-bold uppercase opacity-30 tracking-widest">Temp</span>
+          </div>
+       </div>
+    </GlassCard>
 
     <button 
       onClick={onBoost}
       disabled={isBoosting}
       className={cn(
-        "relative h-20 rounded-3xl overflow-hidden group transition-all duration-500",
+        "relative h-20 rounded-[2rem] overflow-hidden transition-all duration-500 font-orbitron flex items-center justify-center gap-3",
         isBoosting 
-          ? (isUltraMode ? "bg-neonGreen/10 border border-neonGreen/30" : "bg-neonBlue/10 border border-neonBlue/30") 
-          : (isUltraMode ? "bg-neonGreen shadow-[0_0_30px_#39ff14]/40" : "bg-neonBlue shadow-[0_0_30px_rgba(0,210,255,0.4)]")
+          ? (isUltraMode ? "bg-neonGreen/10 border border-neonGreen/20 text-neonGreen" : "bg-white/5 border border-white/10 text-white/40") 
+          : (isUltraMode ? "bg-neonGreen text-black font-black shadow-[0_20px_40px_rgba(57,255,20,0.2)]" : "bg-white text-black font-black shadow-[0_20px_40px_rgba(255,255,255,0.1)]")
       )}
     >
-      <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
       {isBoosting && (
         <motion.div 
-          className={cn("absolute inset-0", isUltraMode ? "bg-neonGreen/20" : "bg-neonBlue/20")}
+          className={cn("absolute inset-y-0 left-0", isUltraMode ? "bg-neonGreen/20" : "bg-neonBlue/20")}
           initial={{ width: 0 }}
           animate={{ width: `${progress * 100}%` }}
         />
       )}
-      <div className="relative flex flex-col items-center justify-center">
-        <span className={cn(
-          "font-orbitron font-black text-lg tracking-[0.2em] uppercase",
-          isBoosting ? (isUltraMode ? "text-neonGreen" : "text-neonBlue") : "text-black"
-        )}>
-          {isBoosting ? status : "INITIALIZE BOOST"}
-        </span>
-        <span className={cn(
-          "font-cairo text-[10px] font-bold mt-0.5",
-          isBoosting ? (isUltraMode ? "text-neonGreen/60" : "text-neonBlue/60") : "text-black/60"
-        )}>
-           {isBoosting ? "يتم الآن تسريح الموارد العالقة" : "بدء تسريع الجهاز والنت فوراً"}
-        </span>
+      <Zap className={cn("w-5 h-5 transition-transform", !isBoosting && "group-hover:scale-110")} fill={isBoosting ? "none" : "currentColor"} />
+      <div className="flex flex-col items-start leading-none">
+         <span className="text-sm font-black tracking-widest">{isBoosting ? status : "INITIALIZE OPTIMIZATION"}</span>
+         {!isBoosting && <span className="text-[9px] font-bold opacity-50 mt-1 font-cairo">تحسين أداء النظام والنت بذكاء</span>}
       </div>
     </button>
   </div>
@@ -166,86 +146,57 @@ const OptimizationSection = ({ onBoost, isBoosting, progress, status, metrics, i
 
 const BatterySection = ({ onOptimize, isOptimizing, metrics, isUltraMode }: any) => (
   <div className="flex flex-col gap-6 font-cairo">
-    <div className="relative h-64 flex items-center justify-center">
-      <div className={cn("absolute w-[220px] h-[220px] rounded-full border flex items-center justify-center", isUltraMode ? "border-neonGreen/10" : "border-yellow-500/10")}>
-         <motion.div 
-           animate={isOptimizing ? { rotate: 360 } : { rotate: 0 }}
-           transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-           className={cn("absolute inset-2 rounded-full border-2 border-dashed", isUltraMode ? "border-neonGreen/20" : "border-yellow-500/20")} 
-         />
-      </div>
-
-      <div className="relative flex flex-col items-center">
-        <motion.div 
-          animate={isOptimizing ? { scale: [1, 1.1, 1] } : {}}
-          transition={{ duration: 1, repeat: Infinity }}
-          className={cn("p-6 rounded-full border shadow-xl", isUltraMode ? "bg-neonGreen/10 border-neonGreen/30 shadow-neonGreen/10" : "bg-yellow-500/10 border border-yellow-500/30 shadow-[0_0_40px_rgba(234,179,8,0.1)]")}
-        >
-          <Bolt className={cn("w-12 h-12", isUltraMode ? "text-neonGreen" : "text-yellow-500")} />
-        </motion.div>
-        <div className="mt-6 text-center">
-          <span className={cn("text-4xl font-orbitron font-black", isUltraMode ? "text-neonGreen" : "text-white")}>{isUltraMode ? "99+" : metrics.batteryHealth}%</span>
-          <span className={cn("block text-[10px] font-bold uppercase tracking-[0.2em] mt-1", isUltraMode ? "text-neonGreen/60" : "text-yellow-500")}>
-            {isUltraMode ? "ULTRA LONG LIFE" : "Battery Condition: Peak"}
-          </span>
-        </div>
-      </div>
+    <div className="flex justify-between items-center mb-2">
+       <PremiumBadge label="Battery Core" isUltraMode={isUltraMode} />
+       <StatusBadge active={true} label="Peak Performance" isUltraMode={isUltraMode} />
     </div>
 
-    <div className="grid grid-cols-2 gap-4">
-      <GlassCard className={cn("p-4", isUltraMode ? "border-neonGreen/20" : "border-yellow-500/10")} isUltraMode={isUltraMode}>
-        <span className="text-[10px] opacity-40 uppercase block mb-1">دورات الشحن</span>
-        <div className="flex items-center justify-between">
-          <span className={cn("text-lg font-orbitron font-bold", isUltraMode && "text-neonGreen")}>142</span>
-          <Activity className={cn("w-4 h-4 opacity-50", isUltraMode ? "text-neonGreen" : "text-yellow-500")} />
-        </div>
-      </GlassCard>
-      <GlassCard className={cn("p-4", isUltraMode ? "border-neonGreen/20" : "border-yellow-500/10")} isUltraMode={isUltraMode}>
-        <span className="text-[10px] opacity-40 uppercase block mb-1">درجة الحرارة</span>
-        <div className="flex items-center justify-between">
-          <span className={cn("text-lg font-orbitron font-bold", isUltraMode && "text-neonGreen")}>{Math.round(metrics.temp)}°C</span>
-          <Activity className={cn("w-4 h-4 opacity-50", isUltraMode ? "text-neonGreen" : "text-neonGreen")} />
-        </div>
-      </GlassCard>
-    </div>
-
-    {!isUltraMode && (
-      <GlassCard className="p-5 space-y-4" isUltraMode={isUltraMode}>
-        <h4 className="text-xs font-bold opacity-60 uppercase tracking-widest text-right">تحليل استهلاك الطاقة</h4>
-        {[
-          { name: "تطبيقات الخلفية", usage: "32%", color: "bg-red-500" },
-          { name: "إرسال البيانات", usage: "12%", color: "bg-yellow-500" },
-          { name: "سطوع الشاشة", usage: "45%", color: "bg-neonBlue" },
-        ].map((item, i) => (
-          <div key={i} className="space-y-1.5 text-right">
-            <div className="flex justify-between items-center text-[10px] font-bold">
-              <span className="opacity-40">{item.usage}</span>
-              <span>{item.name}</span>
-            </div>
-            <div className="h-1 bg-white/5 rounded-full overflow-hidden">
-              <motion.div 
-                initial={{ width: 0 }}
-                animate={{ width: item.usage }}
-                className={cn("h-full", item.color)} 
-              />
-            </div>
+    <GlassCard className="p-8 flex flex-col items-center" glowColor={isUltraMode ? "" : "gold"} isUltraMode={isUltraMode}>
+       <div className="relative w-48 h-48 mb-6 flex items-center justify-center">
+          <svg className="absolute inset-0 w-full h-full -rotate-90">
+             <circle cx="96" cy="96" r="80" stroke="currentColor" strokeWidth="2" fill="transparent" className="text-white/5" />
+             <motion.circle 
+               cx="96" cy="96" r="80" stroke={isUltraMode ? "#39ff14" : "#eab308"} strokeWidth="6" fill="transparent"
+               strokeDasharray={2 * Math.PI * 80}
+               initial={{ strokeDashoffset: 2 * Math.PI * 80 }}
+               animate={{ strokeDashoffset: (2 * Math.PI * 80) * (1 - (isUltraMode ? 0.99 : (metrics.batteryHealth / 100))) }}
+               transition={{ duration: 2, ease: "easeOut" }}
+               strokeLinecap="round"
+             />
+          </svg>
+          <div className="text-center">
+             <span className={cn("text-5xl font-orbitron font-black block", isUltraMode && "text-neonGreen")}>{isUltraMode ? "99+" : metrics.batteryHealth}%</span>
+             <span className="text-[9px] font-bold opacity-30 uppercase tracking-[0.3em]">Remaining</span>
           </div>
-        ))}
-      </GlassCard>
-    )}
+       </div>
+
+       <div className="grid grid-cols-2 gap-4 w-full">
+          <div className="bg-white/5 rounded-2xl p-4 border border-white/5 text-center">
+             <span className="text-[10px] block opacity-40 mb-1">Health</span>
+             <span className={cn("text-lg font-orbitron font-bold", isUltraMode && "text-neonGreen")}>91%</span>
+          </div>
+          <div className="bg-white/5 rounded-2xl p-4 border border-white/5 text-center">
+             <span className="text-[10px] block opacity-40 mb-1">Temperature</span>
+             <span className={cn("text-lg font-orbitron font-bold", isUltraMode && "text-neonGreen")}>{Math.round(metrics.temp)}°C</span>
+          </div>
+       </div>
+    </GlassCard>
 
     <button 
       onClick={onOptimize}
       disabled={isOptimizing}
       className={cn(
-        "h-16 rounded-2xl font-bold flex items-center justify-center gap-3 transition-all",
+        "h-20 rounded-[2rem] font-black font-orbitron flex items-center justify-center gap-3 transition-all",
         isOptimizing 
-          ? (isUltraMode ? "bg-neonGreen/10 border border-neonGreen/40 text-neonGreen" : "bg-yellow-500/10 border border-yellow-500/40 text-yellow-500") 
-          : (isUltraMode ? "bg-neonGreen text-black" : "bg-yellow-500 text-black shadow-[0_0_20px_rgba(234,179,8,0.3)]")
+          ? (isUltraMode ? "bg-neonGreen/10 border border-neonGreen/20 text-neonGreen" : "bg-yellow-500/10 border border-yellow-500/20 text-yellow-500") 
+          : (isUltraMode ? "bg-neonGreen text-black" : "bg-yellow-500 text-black shadow-lg shadow-yellow-500/20")
       )}
     >
-      <Zap className={cn("w-5 h-5", isOptimizing && "animate-pulse")} />
-      <span>{isOptimizing ? "جاري معالجة خلايا البطارية..." : (isUltraMode ? "تحسين وضع التوفير" : "تحسين صحة البطارية الآن")}</span>
+      <Bolt className={cn("w-5 h-5", isOptimizing && "animate-bounce")} fill={isOptimizing ? "none" : "currentColor"} />
+      <div className="flex flex-col items-start leading-none">
+         <span className="text-sm tracking-widest uppercase">{isOptimizing ? "Optimizing Power..." : "BOOST BATTERY LIFE"}</span>
+         {!isOptimizing && <span className="text-[9px] font-bold opacity-50 mt-1 font-cairo">إطالة عمر البطارية وتحسين خلايا الطاقة</span>}
+      </div>
     </button>
   </div>
 )
@@ -264,138 +215,114 @@ const FilesSection = ({ onClean, isCleaning, isUltraMode }: any) => {
 
   return (
     <div className="flex flex-col gap-6 font-cairo">
-       <GlassCard className={cn("p-6 text-center", isUltraMode ? "border-neonGreen/20" : "border-neonPurple/20")} isUltraMode={isUltraMode}>
-          <div className="flex justify-center mb-6">
-            <div className="relative">
-              <HardDrive className={cn("w-16 h-16 opacity-30", isUltraMode ? "text-neonGreen" : "text-neonPurple")} />
-              <motion.div 
-                animate={isCleaning ? { opacity: [1, 0.5, 1], scale: [1, 1.1, 1] } : {}}
-                transition={{ duration: 0.8, repeat: Infinity }}
-                className="absolute inset-0 flex items-center justify-center"
-              >
-                <Trash2 className={cn("w-8 h-8", isUltraMode ? "text-neonGreen" : "text-neonPurple")} />
-              </motion.div>
-            </div>
-          </div>
-          
-          <h3 className={cn("text-xl font-bold mb-1", isUltraMode && "text-neonGreen")}>منظف الملفات الذكي</h3>
-          <p className="text-xs opacity-50 mb-6 font-cairo text-center">جارٍ فحص الذاكرة المؤقتة، الملفات المتبقية، وسجلات النظام</p>
-          
-          <div className="grid grid-cols-2 gap-4 mb-6">
-            <div className="bg-white/5 rounded-2xl p-3 border border-white/5">
-              <span className="text-[10px] block opacity-40 mb-1">تم اكتشافه</span>
-              <span className={cn("text-lg font-orbitron font-bold", isUltraMode ? "text-neonGreen" : "text-neonPurple")}>
-                {isCleaning ? (junkFound / 1024).toFixed(2) : "1.42"} GB
-              </span>
-            </div>
-            <div className="bg-white/5 rounded-2xl p-3 border border-white/5">
-              <span className="text-[10px] block opacity-40 mb-1">توفير متوقع</span>
-              <span className="text-lg font-orbitron font-bold text-neonGreen">
-                {isCleaning ? "Calculating..." : "2.8 GB"}
-              </span>
-            </div>
-          </div>
+       <div className="flex justify-between items-center mb-2">
+          <PremiumBadge label="Storage Guard" isUltraMode={isUltraMode} />
+          <span className="text-[10px] font-bold opacity-40 uppercase tracking-widest">NVMe Analysis</span>
+       </div>
 
-          <button 
-            onClick={onClean}
-            disabled={isCleaning}
-            className={cn("w-full h-14 border rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-opacity-30 transition-all", isUltraMode ? "bg-neonGreen/20 border-neonGreen/40 text-neonGreen" : "bg-neonPurple/20 border-neonPurple/40")}
-          >
-            {isCleaning ? (
-              <div className="flex items-center gap-3">
-                <div className={cn("w-4 h-4 border-2 rounded-full animate-spin", isUltraMode ? "border-neonGreen border-t-transparent" : "border-neonPurple border-t-transparent")} />
-                <span>جاري التنظيف العميق...</span>
-              </div>
-            ) : (
-              <>
-                <Zap className={cn("w-4 h-4", isUltraMode ? "text-neonGreen" : "text-neonPurple")} />
-                <span>تنظيف الجهاز وتوفير مساحة</span>
-              </>
-            )}
-          </button>
+       <GlassCard className="p-8 text-center" glowColor={isUltraMode ? "" : "purple"} isUltraMode={isUltraMode}>
+          <div className="flex justify-center mb-6">
+             <div className="relative p-6 rounded-3xl bg-white/5 border border-white/10 group-hover:scale-110 transition-transform duration-700">
+                <HardDrive className={cn("w-12 h-12", isUltraMode ? "text-neonGreen" : "text-neonPurple")} />
+                {isCleaning && (
+                   <motion.div 
+                     animate={{ rotate: 360 }}
+                     transition={{ duration: 0.5, repeat: Infinity, ease: "linear" }}
+                     className="absolute inset-2 border-2 border-neonPurple border-t-transparent rounded-full"
+                   />
+                )}
+             </div>
+          </div>
+          
+          <h3 className={cn("text-xl font-bold mb-1", isUltraMode && "text-neonGreen")}>Deep Storage Clean</h3>
+          <p className="text-[11px] opacity-40 mb-8 mx-auto max-w-[200px]">تحليل دقيق للملفات المؤقتة وبقايا التطبيقات المحذوفة.</p>
+          
+          <div className="bg-black/40 rounded-[2rem] p-6 mb-2 border border-white/5">
+             <span className="text-[10px] block opacity-30 uppercase tracking-widest mb-3">Total Junk Detected</span>
+             <span className={cn("text-5xl font-orbitron font-black text-glow-blue", isUltraMode && "text-neonGreen text-glow-green")}>
+                {isCleaning ? (junkFound / 1024).toFixed(1) : "1.4"}
+                <span className="text-xl ml-1 opacity-30">GB</span>
+             </span>
+          </div>
        </GlassCard>
 
-       {!isUltraMode && (
-         <div className="space-y-3">
-            <h4 className="text-xs font-bold opacity-40 px-2 uppercase tracking-widest text-right">المناطق الممسوحة</h4>
-            {[
-              { name: "ذاكرة التطبيقات", size: "840 MB", icon: Layers },
-              { name: "ملفات النظام المؤقتة", size: "420 MB", icon: Cpu },
-              { name: "سجلات الإنترنت", size: "160 MB", icon: Wifi },
-            ].map((item, i) => (
-              <div key={i} className="glass rounded-2xl p-4 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <item.icon className="w-4 h-4 text-neonBlue" />
-                  <span className="text-sm font-bold">{item.name}</span>
-                </div>
-                <span className="text-xs font-mono opacity-50">{item.size}</span>
-              </div>
-            ))}
+       <button 
+         onClick={onClean}
+         disabled={isCleaning}
+         className={cn(
+           "h-20 rounded-[2rem] font-black font-orbitron flex items-center justify-center gap-3 transition-all",
+           isCleaning 
+             ? (isUltraMode ? "bg-neonGreen/10 border border-neonGreen/20 text-neonGreen" : "bg-neonPurple/10 border border-neonPurple/40 text-neonPurple") 
+             : (isUltraMode ? "bg-neonGreen text-black" : "bg-neonPurple text-black shadow-lg shadow-neonPurple/20")
+         )}
+       >
+         <Trash2 className={cn("w-5 h-5", isCleaning && "animate-pulse")} fill={isCleaning ? "none" : "currentColor"} />
+         <div className="flex flex-col items-start leading-none">
+            <span className="text-sm tracking-widest uppercase">{isCleaning ? "Cleaning Vault..." : "INITIALIZE DEEP CLEAN"}</span>
+            {!isCleaning && <span className="text-[9px] font-bold opacity-50 mt-1 font-cairo">تفريغ المساحة وحذف الملفات غير الضرورية</span>}
          </div>
-       )}
+       </button>
     </div>
   )
 }
 
 const NetworkSection = ({ onBoost, isBoosting, speed, isUltraMode }: any) => (
   <div className="flex flex-col gap-6 font-cairo">
-     <GlassCard className={cn("p-8 overflow-hidden", isUltraMode ? "border-neonGreen/20 bg-black" : "border-neonBlue/20")} isUltraMode={isUltraMode}>
-        <div className="absolute top-0 right-0 p-4">
-           <StatusBadge active={true} label="DNS: SECURE" isUltraMode={isUltraMode} />
-        </div>
-        
-        <div className="flex flex-col items-center mt-4">
-           <div className="relative w-40 h-40 flex items-center justify-center">
-              <motion.div 
-                animate={{ rotate: 360 }}
-                transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                className={cn("absolute inset-0 border-2 border-dashed rounded-full", isUltraMode ? "border-neonGreen/20" : "border-neonBlue/20")} 
-              />
-              <motion.div 
-                animate={{ scale: isBoosting ? [1, 1.2, 1] : 1 }}
-                transition={{ duration: 1, repeat: Infinity }}
-                className="relative z-10"
-              >
-                <Wifi className={cn("w-16 h-16 drop-shadow-lg", isUltraMode ? "text-neonGreen shadow-neonGreen/40" : "text-neonBlue shadow-neonBlue/60")} />
-              </motion.div>
-           </div>
-           
-           <div className="text-center mt-6">
-              <h3 className={cn("text-2xl font-orbitron font-black", isUltraMode && "text-neonGreen")}>{isUltraMode ? "LOCKED" : speed} <span className="text-sm opacity-50">{isUltraMode ? "" : "Mbps"}</span></h3>
-              <p className={cn("text-xs font-bold opacity-60 mt-1 uppercase tracking-widest", isUltraMode ? "text-neonGreen" : "text-neonBlue")}>
-                {isUltraMode ? "POWERSAVE MODE ACTIVE" : "Current Signal Peak"}
-              </p>
-           </div>
-        </div>
+    <div className="flex justify-between items-center mb-2">
+       <PremiumBadge label="Signal Guard" isUltraMode={isUltraMode} />
+       <StatusBadge active={true} label="SSL Secure" isUltraMode={isUltraMode} />
+    </div>
 
-        {!isUltraMode && (
-          <div className="grid grid-cols-2 gap-4 mt-8">
-             <div className="glass p-3 rounded-xl border-white/5">
-                <span className="text-[9px] block opacity-40 uppercase mb-1 text-right">Ping Latency</span>
-                <span className="text-sm font-bold text-neonGreen">12ms</span>
-             </div>
-             <div className="glass p-3 rounded-xl border-white/5 text-right">
-                <span className="text-[9px] block opacity-40 uppercase mb-1">Network Type</span>
-                <span className="text-sm font-bold">5G / Fiber</span>
-             </div>
+    <GlassCard className="p-8 overflow-hidden min-h-[300px] flex flex-col justify-center" glowColor={isUltraMode ? "" : "blue"} isUltraMode={isUltraMode}>
+       <div className="absolute top-0 right-0 p-6 opacity-20">
+          <Wifi className={cn("w-24 h-24", isUltraMode ? "text-neonGreen" : "text-neonBlue")} />
+       </div>
+       
+       <div className="relative z-10">
+          <span className="text-[10px] font-bold opacity-30 uppercase tracking-[0.3em] block mb-2">Current Throughput</span>
+          <div className="flex items-baseline gap-2">
+             <span className={cn("text-6xl font-orbitron font-black text-glow-blue", isUltraMode && "text-neonGreen text-glow-green")}>
+                {isUltraMode ? "LOCKED" : speed}
+             </span>
+             {!isUltraMode && <span className="text-xl font-bold opacity-30">Mbps</span>}
           </div>
-        )}
-     </GlassCard>
+          <div className={cn("h-1 w-20 mt-4 rounded-full", isUltraMode ? "bg-neonGreen/30" : "bg-neonBlue/30")}>
+             <motion.div 
+               animate={{ x: [0, 60, 0] }}
+               transition={{ duration: 2, repeat: Infinity }}
+               className={cn("w-4 h-full rounded-full", isUltraMode ? "bg-neonGreen" : "bg-neonBlue")} 
+             />
+          </div>
+       </div>
 
-     <button 
-       onClick={onBoost}
-       disabled={isBoosting}
-       className={cn("h-16 border rounded-2xl font-bold flex items-center justify-center gap-3 transition-all", isUltraMode ? "bg-neonGreen/5 border-neonGreen/30 text-neonGreen" : "bg-gradient-to-r from-neonBlue/20 to-neonPurple/20 border border-neonBlue/30")}
-     >
-       <Rocket className={cn("w-5 h-5", isBoosting && "animate-bounce", isUltraMode ? "text-neonGreen" : "text-neonBlue")} />
-       <span>{isBoosting ? "جاري تحسين استجابة الشبكة..." : "تسريع النت وتقليل البنق"}</span>
-     </button>
+       <div className="grid grid-cols-2 gap-4 mt-12 relative z-10">
+          <div className="text-right">
+             <span className="text-[9px] font-bold opacity-30 uppercase block mb-1">Latency</span>
+             <span className={cn("text-lg font-orbitron font-bold", isUltraMode && "text-neonGreen")}>12ms</span>
+          </div>
+          <div className="text-right">
+             <span className="text-[9px] font-bold opacity-30 uppercase block mb-1">Packet Loss</span>
+             <span className={cn("text-lg font-orbitron font-bold", isUltraMode && "text-neonGreen")}>0.00%</span>
+          </div>
+       </div>
+    </GlassCard>
 
-     {isUltraMode && (
-        <div className="p-4 border border-neonGreen/20 bg-neonGreen/5 rounded-2xl text-[10px] text-center text-neonGreen/60">
-          وضع التوفير الفائق يحد من سرعة النت لتقليل استهلاك البطارية
-        </div>
-     )}
+    <button 
+      onClick={onBoost}
+      disabled={isBoosting}
+      className={cn(
+        "h-20 rounded-[2rem] font-black font-orbitron flex items-center justify-center gap-3 transition-all",
+        isBoosting 
+          ? (isUltraMode ? "bg-neonGreen/10 border border-neonGreen/20 text-neonGreen" : "bg-white/5 border border-white/10 text-white/40") 
+          : (isUltraMode ? "bg-neonGreen text-black" : "bg-white text-black shadow-lg shadow-white/10")
+      )}
+    >
+      <Rocket className={cn("w-5 h-5", isBoosting && "animate-bounce")} fill={isBoosting ? "none" : "currentColor"} />
+      <div className="flex flex-col items-start leading-none">
+         <span className="text-sm tracking-widest uppercase">{isBoosting ? "Optimizing Path..." : "BOOST NETWORK SPEED"}</span>
+         {!isBoosting && <span className="text-[9px] font-bold opacity-50 mt-1 font-cairo">تحسين مسار البيانات وتقليل التأخير (Ping)</span>}
+      </div>
+    </button>
   </div>
 )
 
@@ -648,107 +575,95 @@ export default function App() {
 
   return (
     <div className={cn(
-      "min-h-screen text-white font-sans selection:bg-neonBlue/30 overflow-x-hidden pb-24 transition-colors duration-700",
-      isUltraMode ? "bg-black" : "bg-deep-black bg-mesh"
+      "min-h-screen text-white font-outfit selection:bg-neonBlue/30 overflow-x-hidden pb-12 transition-all duration-1000",
+      isUltraMode ? "bg-black" : "bg-deep-onyx bg-mesh"
     )}>
-      {/* Background Decor - Only show in normal mode */}
+      {/* Dynamic Background decor */}
       {!isUltraMode && (
-        <div className="fixed inset-0 pointer-events-none opacity-40">
-          <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-neonBlue/10 blur-[150px] rounded-full" />
-          <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-neonPurple/10 blur-[150px] rounded-full" />
+        <div className="fixed inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] bg-neonBlue/5 blur-[200px] rounded-full animate-pulse-slow" />
+          <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-neonPurple/5 blur-[200px] rounded-full animate-pulse-slow" />
         </div>
       )}
 
       {isUltraMode && (
-         <div className="fixed inset-0 pointer-events-none opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
+         <div className="fixed inset-0 pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] mix-blend-overlay opacity-20" />
       )}
 
       <header className={cn(
-        "sticky top-0 z-30 px-6 py-6 flex items-center justify-between glass border-none transition-all",
-        isUltraMode && "bg-black border-b border-neonGreen/10"
+        "sticky top-0 z-50 px-8 py-8 flex items-center justify-between transition-all duration-500",
+        isUltraMode ? "bg-black/90 backdrop-blur-3xl border-b border-neonGreen/10" : "bg-transparent"
       )}>
-         <div className="flex items-center gap-3">
-            <div className={cn(
-              "w-10 h-10 rounded-2xl flex items-center justify-center p-[1px] shadow-lg transition-all",
-              isUltraMode ? "bg-neonGreen shadow-[0_0_20px_#39ff14]/30" : "bg-gradient-to-br from-neonBlue to-neonPurple shadow-neonBlue/30"
-            )}>
-               <div className="w-full h-full rounded-[15px] bg-black flex items-center justify-center">
-                  <Zap className={cn("w-5 h-5", isUltraMode ? "text-neonGreen" : "text-neonBlue")} fill="currentColor" />
+         <div className="flex items-center gap-4">
+            <motion.div 
+               whileHover={{ scale: 1.1, rotate: 5 }}
+               className={cn(
+                 "w-12 h-12 rounded-[1.25rem] flex items-center justify-center p-[1px] shadow-2xl transition-all duration-500",
+                 isUltraMode ? "bg-neonGreen shadow-neonGreen/20" : "premium-gradient-blue shadow-neonBlue/20"
+               )}
+            >
+               <div className="w-full h-full rounded-[1.15rem] bg-black flex items-center justify-center">
+                  <Zap className={cn("w-6 h-6", isUltraMode ? "text-neonGreen" : "text-neonBlue")} fill="currentColor" />
                </div>
-            </div>
+            </motion.div>
             <div>
-               <h1 className={cn("text-lg font-orbitron font-black tracking-tighter leading-none transition-colors", isUltraMode && "text-neonGreen")}>
-                 NEURAL BOOST X
+               <h1 className={cn("text-2xl font-black font-orbitron tracking-tighter leading-none transition-colors", isUltraMode && "text-neonGreen")}>
+                 NEURAL <span className="opacity-50 font-light">BOOST X</span>
                </h1>
-               <div className="flex items-center gap-1.5 mt-1">
-                  <span className={cn(
-                    "w-2 h-2 rounded-full animate-pulse",
-                    isUltraMode ? "bg-neonGreen shadow-[0_0_8px_#39ff14]" : "bg-neonGreen shadow-[0_0_8px_#39ff14]"
-                  )} />
-                  <span className={cn(
-                    "text-[9px] font-bold uppercase tracking-widest font-orbitron",
-                    isUltraMode ? "text-neonGreen" : "text-neonBlue"
-                  )}>
-                    {isUltraMode ? "ULTRA ENERGY MODE: TRUE" : "Neural link: Active"}
+               <div className="flex items-center gap-1.5 mt-1.5">
+                  <div className={cn("inline-block w-2 h-2 rounded-full animate-pulse", isUltraMode ? "bg-neonGreen" : "bg-neonBlue")} />
+                  <span className={cn("text-[9px] font-black uppercase tracking-[0.4em] font-orbitron opacity-50", isUltraMode && "text-neonGreen")}>
+                    CORE VERSION 2.1
                   </span>
                </div>
             </div>
          </div>
-         <div className="flex items-center gap-4">
-            {!isUltraMode && (
-              <>
-                 <button className="relative w-10 h-10 glass rounded-full flex items-center justify-center group overflow-hidden">
-                    <Bell className="w-5 h-5 text-white/70 group-hover:text-white transition-colors" />
-                    <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-neonRed rounded-full border border-black" />
-                 </button>
-                 <button className="w-10 h-10 glass rounded-full flex items-center justify-center text-white/70 hover:text-white transition-colors">
-                    <Settings className="w-5 h-5" />
-                 </button>
-              </>
-            )}
-            {isUltraMode && (
+         
+         <div className="flex items-center gap-3">
+            {isUltraMode ? (
                <button 
                  onClick={toggleUltraMode}
-                 className="px-4 py-2 border border-neonGreen text-neonGreen font-orbitron text-[10px] font-bold rounded-lg hover:bg-neonGreen hover:text-black transition-all"
+                 className="px-6 py-2 border-2 border-neonGreen text-neonGreen font-orbitron text-[10px] font-black rounded-xl hover:bg-neonGreen hover:text-black transition-all"
                >
                  EXIT ULTRA
                </button>
+            ) : (
+               <>
+                  <button className="w-12 h-12 glass rounded-2xl flex items-center justify-center hover:bg-white/5 transition-all">
+                     <Bell className="w-5 h-5 opacity-40" />
+                  </button>
+                  <button className="w-12 h-12 glass rounded-2xl flex items-center justify-center hover:bg-white/5 transition-all">
+                     <Settings className="w-5 h-5 opacity-40" />
+                  </button>
+               </>
             )}
          </div>
       </header>
 
-      <main className="px-6 py-4 max-w-xl mx-auto">
-         {/* Welcome Card */}
+      <main className="px-8 pb-32 max-w-2xl mx-auto">
+         {/* Welcome Header */}
          {activeTab === 'boost' && !isBoosting && !isUltraMode && (
-           <motion.div 
-             initial={{ opacity: 0, y: 10 }}
-             animate={{ opacity: 1, y: 0 }}
-             className="mb-8 font-cairo"
-           >
-              <h2 className="text-2xl font-black">أهلاً بك في الجيل القادم</h2>
-              <p className="text-xs opacity-50 mt-1">أداة واحدة لجهاز أسرع، نت أقوى، ومساحة أكبر.</p>
-           </motion.div>
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-12 font-cairo">
+               <h2 className="text-4xl font-black tracking-tight mb-2">النظام في أمان.</h2>
+               <p className="text-sm opacity-40 font-medium">قم بتحسين أداء جهازك بلمسة واحدة لذكاء اصطناعي فائق.</p>
+            </motion.div>
          )}
 
-         {isUltraMode && (
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="bg-neonGreen/5 border border-neonGreen/20 rounded-3xl p-6 mb-8 text-center font-cairo"
-            >
-               <h2 className="text-neonGreen text-xl font-black uppercase font-orbitron tracking-widest">Ultra Power Mode</h2>
-               <div className="text-neonGreen text-4xl font-black my-4 font-orbitron">99+ HOURS</div>
-               <p className="text-neonGreen/70 text-xs">تم إغلاق كافة الأنظمة غير الضرورية وتجميد العمليات الخلفية للحفاظ على الطاقة.</p>
+         {isUltraMode && !activeTab.includes('battery') && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mb-12 glass p-10 border-neonGreen/20 rounded-[3rem] text-center font-cairo bg-black">
+               <span className="text-neonGreen/40 text-[10px] uppercase font-black tracking-[0.6em] mb-4 block">Ultra Active</span>
+               <h2 className="text-neonGreen text-5xl font-black font-orbitron mb-4">99+ HOURS</h2>
+               <p className="text-neonGreen/60 text-xs">حالة "التجميد الفائق" مفعلة. كافة موارد النظام موجهة للطاقة والدوام.</p>
             </motion.div>
          )}
 
          <AnimatePresence mode="wait">
             <motion.div
               key={activeTab}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.3 }}
+              initial={{ opacity: 0, x: 20, scale: 0.98 }}
+              animate={{ opacity: 1, x: 0, scale: 1 }}
+              exit={{ opacity: 0, x: -20, scale: 0.98 }}
+              transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
             >
                {activeTab === 'boost' && (
                  <OptimizationSection 
@@ -771,29 +686,27 @@ export default function App() {
                     />
                     
                     <GlassCard className={cn(
-                      "p-6 flex flex-col gap-4 transition-all duration-500",
-                      isUltraMode ? "border-neonGreen/40 bg-neonGreen/5" : "border-neonPurple/20"
+                      "p-8 flex items-center justify-between transition-all duration-700",
+                      isUltraMode ? "border-neonGreen/40 bg-neonGreen/10" : "border-white/5"
                     )} isUltraMode={isUltraMode}>
-                       <div className="flex items-center justify-between font-cairo">
-                          <div className="text-right flex-1">
-                             <h4 className={cn("text-lg font-bold", isUltraMode ? "text-neonGreen" : "text-white")}>
-                               وضع توفير الطاقة الفائق
-                             </h4>
-                             <p className="text-[10px] opacity-50">تفعيل أقصى حماية للبطارية باللون الأخضر المميت</p>
-                          </div>
-                          <div 
-                             onClick={toggleUltraMode}
-                             className={cn(
-                               "w-14 h-7 rounded-full relative cursor-pointer transition-all duration-300 ml-4",
-                               isUltraMode ? "bg-neonGreen" : "bg-white/10"
-                             )}
-                          >
-                             <motion.div 
-                               animate={{ x: isUltraMode ? 28 : 4 }}
-                               className="absolute top-1 w-5 h-5 rounded-full bg-black shadow-lg" 
-                             />
-                          </div>
+                       <div className="text-right font-cairo">
+                          <h4 className={cn("text-xl font-black", isUltraMode ? "text-neonGreen" : "text-white")}>
+                             وضع التوفير الفائق
+                          </h4>
+                          <p className="text-[10px] opacity-40 font-medium mt-1 uppercase tracking-wider">Freeze Background Processes (99+ Hrs)</p>
                        </div>
+                       <button 
+                         onClick={toggleUltraMode}
+                         className={cn(
+                           "w-16 h-8 rounded-full relative p-1 transition-all duration-500",
+                           isUltraMode ? "bg-neonGreen" : "bg-white/10"
+                         )}
+                       >
+                          <motion.div 
+                            animate={{ x: isUltraMode ? 28 : 0 }}
+                            className="w-6 h-6 rounded-full bg-black shadow-2xl" 
+                          />
+                       </button>
                     </GlassCard>
                   </div>
                )}
@@ -826,28 +739,30 @@ export default function App() {
 
                {activeTab === 'ai' && (
                   <div className={cn("flex flex-col gap-6 font-cairo text-right", isUltraMode && "text-neonGreen")}>
-                     <GlassCard className={cn("p-8 text-center min-h-[400px] flex flex-col items-center justify-center gap-6", isUltraMode && "border-neonGreen/20 bg-black")} isUltraMode={isUltraMode}>
-                        <div className={cn("w-20 h-20 rounded-full flex items-center justify-center border relative", isUltraMode ? "bg-neonGreen/10 border-neonGreen/40" : "bg-neonBlue/10 border-neonBlue/30")}>
-                           <BrainCircuit className={cn("w-10 h-10", isUltraMode ? "text-neonGreen" : "text-neonBlue")} />
-                           <motion.div 
-                             animate={{ scale: [1, 1.5, 1], opacity: [0.3, 0, 0.3] }}
-                             transition={{ duration: 2, repeat: Infinity }}
-                             className={cn("absolute inset-0 rounded-full", isUltraMode ? "bg-neonGreen" : "bg-neonBlue")} 
-                           />
+                     <GlassCard className={cn("p-12 text-center min-h-[450px] flex flex-col items-center justify-center gap-8", isUltraMode && "border-neonGreen/20 bg-black")} isUltraMode={isUltraMode} glowColor={isUltraMode ? "" : "blue"}>
+                        <div className="relative">
+                           <div className={cn("w-28 h-28 rounded-[2.5rem] flex items-center justify-center border relative", isUltraMode ? "bg-neonGreen/10 border-neonGreen/40 shadow-neonGreen/30" : "bg-neonBlue/10 border-neonBlue/40 shadow-neonBlue/20")}>
+                              <BrainCircuit className={cn("w-12 h-12", isUltraMode ? "text-neonGreen" : "text-neonBlue")} />
+                              <motion.div 
+                                animate={{ scale: [1, 1.4, 1], opacity: [0.3, 0, 0.3] }}
+                                transition={{ duration: 3, repeat: Infinity }}
+                                className={cn("absolute inset-0 rounded-[2.5rem]", isUltraMode ? "bg-neonGreen shadow-neonGreen/50" : "bg-neonBlue shadow-neonBlue/50")} 
+                              />
+                           </div>
                         </div>
                         <div>
-                           <h3 className="text-xl font-bold">مستشار الذكاء الاصطناعي</h3>
-                           <p className="text-sm opacity-50 mt-2 px-10">الذكاء الاصطناعي يحلل هاتفك الآن لتقديم نصائح تخص البطارية والأداء.</p>
+                           <h3 className="text-3xl font-black tracking-tight mb-2">الاستثمار الذكي.</h3>
+                           <p className="text-xs opacity-40 px-8 leading-relaxed">الذكاء الاصطناعي يحلل هاتفك الآن لتقديم أفضل تجربة أداء ممكنة.</p>
                         </div>
-                        <div className={cn("w-full p-4 rounded-2xl border flex gap-3", isUltraMode ? "bg-neonGreen/5 border-neonGreen/10" : "bg-white/5 border-white/5")}>
-                           <p className="text-xs leading-relaxed flex-1">
-                              {isUltraMode ? "النظام في وضع التوفير الأقصى. تم تقليص ذكاء النظام لتقليل استهلاك الطاقة." : "تم ملاحظة أن تطبيق Games يستهلك 30% من طاقة المعالج في الخلفية. هل تريد إيقافه؟"}
+                        <div className={cn("w-full p-6 rounded-[2rem] border flex gap-4 text-sm font-medium", isUltraMode ? "bg-neonGreen/10 border-neonGreen/20" : "bg-white/5 border-white/10")}>
+                           <p className="flex-1 opacity-70">
+                              {isUltraMode ? "الوضع الفائق يحد من ذكاء النظام لتوفير الطاقة." : "تم ملاحظة استهلاك عالٍ في تطبيقات التواصل. قم ببدء التحليل الشامل."}
                            </p>
-                           <Info className={cn("w-5 h-5 shrink-0", isUltraMode ? "text-neonGreen" : "text-neonBlue")} />
+                           <Info className={cn("w-6 h-6 shrink-0", isUltraMode ? "text-neonGreen" : "text-neonBlue")} />
                         </div>
                         {!isUltraMode && (
-                           <button className="px-8 py-3 bg-neonBlue text-black font-black rounded-2xl text-xs uppercase tracking-widest">
-                              بدء التحليل الشامل
+                           <button className="w-full py-5 bg-white text-black font-black font-orbitron rounded-[2rem] text-[10px] tracking-[0.4em] uppercase shadow-2xl hover:scale-[1.02] transition-transform">
+                              Start AI Deep Scan
                            </button>
                         )}
                      </GlassCard>
@@ -858,10 +773,10 @@ export default function App() {
       </main>
 
       {/* Navigation Bar */}
-      <nav className="fixed bottom-8 left-6 right-6 z-50">
+      <nav className="fixed bottom-10 left-8 right-8 z-50">
          <div className={cn(
-           "max-w-lg mx-auto rounded-[2.5rem] h-20 px-4 flex items-center justify-around border shadow-[0_20px_50px_rgba(0,0,0,0.5)] transition-all",
-           isUltraMode ? "bg-black border-neonGreen/20" : "glass border-white/10"
+           "max-w-xl mx-auto rounded-[2.5rem] h-20 px-4 flex items-center justify-between border shadow-[0_25px_60px_rgba(0,0,0,0.8)] transition-all duration-500",
+           isUltraMode ? "bg-black/90 backdrop-blur-3xl border-neonGreen/20" : "glass border-white/10"
          )}>
             {[
               { id: 'boost', icon: Cpu, label: 'تسريع' },
@@ -875,26 +790,28 @@ export default function App() {
                 key={item.id}
                 onClick={() => setActiveTab(item.id as TabType)}
                 className={cn(
-                  "flex flex-col items-center gap-1.5 py-2 transition-all relative",
+                  "flex flex-col items-center gap-1 py-4 flex-1 transition-all relative",
                   activeTab === item.id 
-                    ? (isUltraMode ? "text-neonGreen" : "text-neonBlue") 
-                    : "text-white/30"
+                    ? (isUltraMode ? "text-neonGreen" : "text-white scale-110") 
+                    : "text-white/20 hover:text-white/40"
                 )}
               >
+                <item.icon className={cn(
+                  "w-5 h-5 z-10 transition-all", 
+                  activeTab === item.id && (isUltraMode ? "drop-shadow-[0_0_12px_#39ff14]" : "drop-shadow-[0_0_15px_rgba(255,255,255,0.4)]")
+                )} />
+                <span className={cn("text-[8px] font-black font-cairo z-10 uppercase tracking-tighter transition-all", activeTab === item.id ? "opacity-100" : "opacity-0")}>
+                  {item.label}
+                </span>
                 {activeTab === item.id && (
                   <motion.div 
-                    layoutId="activeTab"
+                    layoutId="activeNavTab"
                     className={cn(
-                      "absolute -top-1 w-12 h-12 blur-xl rounded-full",
-                      isUltraMode ? "bg-neonGreen/20" : "bg-neonBlue/10"
+                      "absolute inset-x-2 bottom-0 h-1 rounded-full",
+                      isUltraMode ? "bg-neonGreen shadow-[0_0_10px_#39ff14]" : "bg-white shadow-[0_0_10px_rgba(255,255,255,0.5)]"
                     )} 
                   />
                 )}
-                <item.icon className={cn(
-                  "w-6 h-6 z-10 transition-all", 
-                  activeTab === item.id && (isUltraMode ? "drop-shadow-[0_0_10px_#39ff14]" : "drop-shadow-[0_0_10px_rgba(0,210,255,1)]")
-                )} />
-                <span className="text-[10px] font-bold font-cairo z-10">{item.label}</span>
               </button>
             ))}
          </div>
