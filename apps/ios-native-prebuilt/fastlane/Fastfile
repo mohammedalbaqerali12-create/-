@@ -1,0 +1,22 @@
+default_platform(:ios)
+
+platform :ios do
+  desc "Build the NEURAL BOOST X app for App Store Connect"
+  lane :build_ipa do
+    build_app(
+      scheme: "NEURAL_BOOST_X",
+      export_method: "app-store",
+      output_directory: "./fastlane/builds",
+      output_name: "NEURAL_BOOST_X.ipa"
+    )
+  end
+
+  desc "Build for Simulator"
+  lane :build_simulator do
+    build_app(
+      scheme: "NEURAL_BOOST_X",
+      export_method: "development",
+      destination: "generic/platform=iOS Simulator"
+    )
+  end
+end
