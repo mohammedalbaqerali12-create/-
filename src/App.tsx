@@ -2,25 +2,21 @@ import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
   Cpu, 
-  BrainCircuit, 
   Bolt, 
   Wifi, 
   Trash2, 
-  Info,
   Zap,
-  HardDrive,
   Rocket,
   ShieldCheck,
   Fingerprint,
-  Bell,
-  Settings,
   PlaySquare,
   Globe,
   Lock,
   Camera,
-  CheckCircle,
   Database,
-  ScanFace
+  ScanFace,
+  Bell,
+  Settings
 } from 'lucide-react'
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
@@ -31,6 +27,85 @@ function cn(...inputs: ClassValue[]) {
 
 // --- Types ---
 type TabType = 'boost' | 'battery' | 'clean' | 'network' | 'shield' | 'vault'
+
+// --- Audio Effects ---
+export const playCyberSound = (type: 'beep' | 'scan' | 'success' | 'error') => {
+  try {
+    const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioContext) return;
+    const ctx = new AudioContext();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    
+    if (type === 'beep') {
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(800, ctx.currentTime);
+      gain.gain.setValueAtTime(0.05, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.1);
+    } else if (type === 'scan') {
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(100, ctx.currentTime);
+      osc.frequency.linearRampToValueAtTime(300, ctx.currentTime + 1);
+      gain.gain.setValueAtTime(0.02, ctx.currentTime);
+      osc.start();
+      osc.stop(ctx.currentTime + 1);
+    } else if (type === 'success') {
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(400, ctx.currentTime);
+      osc.frequency.setValueAtTime(600, ctx.currentTime + 0.1);
+      gain.gain.setValueAtTime(0.05, ctx.currentTime);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.3);
+    }
+  } catch (e) {
+    // ignore
+  }
+}
+
+// --- App Bootloader ---
+const BootSequence = ({ onComplete }: { onComplete: () => void }) => {
+  const [lines, setLines] = useState<string[]>([])
+  
+  useEffect(() => {
+    const sequence = [
+      "SYSTEM BOOT INITIATED...",
+      "LOADING NEURAL KERNEL [OK]",
+      "ESTABLISHING SECURE CONNECTION...",
+      "BYPASSING TRACKERS [OK]",
+      "MOUNTING AES-256 VAULT [OK]",
+      "CALIBRATING AI VISION...",
+      "NEURAL BOOST X ACTIVE."
+    ]
+    let i = 0
+    const w = setInterval(() => {
+      if (i < sequence.length) {
+        setLines(prev => [...prev, sequence[i]])
+        playCyberSound('beep')
+        i++
+      } else {
+        clearInterval(w)
+        setTimeout(onComplete, 800)
+      }
+    }, 250)
+    return () => clearInterval(w)
+  }, [])
+
+  return (
+    <div className="fixed inset-0 bg-black z-[9999] flex flex-col justify-end p-8 font-orbitron text-neonGreen xl:text-sm text-xs space-y-2 pointer-events-none">
+       {lines.map((l, idx) => (
+         <motion.div key={idx} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}>
+           {'>'} {l}
+         </motion.div>
+       ))}
+       <motion.div animate={{ opacity: [1, 0] }} transition={{ repeat: Infinity }} className="w-3 h-4 bg-neonGreen mt-2" />
+    </div>
+  )
+}
+
 
 // --- Shared Components ---
 
@@ -591,6 +666,7 @@ const ShieldSection = ({ isActive, toggle, count, isUltraMode }: any) => {
 const YouTubePlayer = ({ onClose, isUltraMode }: { onClose: () => void, isUltraMode: boolean }) => {
   const [url, setUrl] = useState('')
   const [videoId, setVideoId] = useState('')
+  const [isMini, setIsMini] = useState(false)
 
   const handlePlay = () => {
     const match = url.match(/(?:youtu\.be\/|youtube\.com\/watch\?v=|youtube\.com\/shorts\/)([^&]+)/)
@@ -599,35 +675,64 @@ const YouTubePlayer = ({ onClose, isUltraMode }: { onClose: () => void, isUltraM
   }
 
   return (
-    <div className={cn("fixed inset-0 z-[100] flex flex-col pt-16 px-6 pb-12 transition-all duration-500", isUltraMode ? "bg-black/95 backdrop-blur-3xl" : "bg-deep-onyx/95 backdrop-blur-3xl")} style={{ height: '100vh', width: '100vw' }}>
-      <div className="flex justify-between items-center mb-8">
-         <h2 className={cn("text-2xl font-black font-cairo", isUltraMode ? "text-neonGreen" : "text-white")}>مشغل يوتيوب الخفي 📺</h2>
-         <button onClick={onClose} className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center font-bold font-orbitron hover:bg-white/20 transition-all">
-           X
-         </button>
+    <motion.div 
+      drag={isMini}
+      dragConstraints={isMini ? { left: -window.innerWidth + 300, right: 0, top: -window.innerHeight + 300, bottom: 0 } : false}
+      className={cn(
+        "z-[200] transition-all duration-500 overflow-hidden",
+        isMini 
+          ? "fixed bottom-32 right-8 w-72 h-44 rounded-3xl shadow-2xl border border-white/20 touch-none pointer-events-auto cursor-move glass" 
+          : "fixed inset-0 flex flex-col pt-16 px-6 pb-12 pointer-events-auto",
+        !isMini && (isUltraMode ? "bg-black/95 backdrop-blur-3xl" : "bg-deep-onyx/95 backdrop-blur-3xl")
+      )}
+      style={!isMini ? { height: '100vh', width: '100vw' } : {}}
+      initial={{ opacity: 0, y: isMini ? 0 : '100%' }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: isMini ? 0 : '100%', scale: isMini ? 0.8 : 1 }}
+    >
+      <div className={cn("flex justify-between items-center transition-opacity", isMini ? "absolute top-2 left-6 right-2 z-50 opacity-0 hover:opacity-100" : "mb-8")}>
+         {!isMini && <h2 className={cn("text-2xl font-black font-cairo", isUltraMode ? "text-neonGreen" : "text-white")}>مشغل يوتيوب الخفي 📺</h2>}
+         <div className={cn("flex items-center gap-2", isMini && "ml-auto")}>
+            {videoId && (
+              <button 
+                onClick={(e) => { e.stopPropagation(); setIsMini(!isMini) }} 
+                className={cn("flex items-center justify-center font-bold font-orbitron hover:bg-white/20 transition-all", isMini ? "w-8 h-8 rounded-full bg-black/50 backdrop-blur" : "w-10 h-10 rounded-full bg-white/10")}
+              >
+                {isMini ? '□' : '_'}
+              </button>
+            )}
+            <button 
+              onClick={(e) => { e.stopPropagation(); onClose() }} 
+              className={cn("flex items-center justify-center font-bold font-orbitron hover:bg-red-500/20 text-red-400 transition-all", isMini ? "w-8 h-8 rounded-full bg-black/50 backdrop-blur" : "w-10 h-10 rounded-full bg-white/10")}
+            >
+              X
+            </button>
+         </div>
       </div>
       
-      <div className="flex gap-3 mb-8 h-14">
-        <input 
-          type="text" 
-          value={url}
-          onChange={(e) => setUrl(e.target.value)}
-          placeholder="قم بلصق رابط فيديو يوتيوب هنا..."
-          className={cn("flex-1 bg-white/5 border rounded-2xl px-6 font-cairo text-right text-sm outline-none transition-all", isUltraMode ? "border-neonGreen/30 focus:border-neonGreen" : "border-white/10 focus:border-neonBlue")}
-          dir="rtl"
-        />
-        <button onClick={handlePlay} className={cn("px-8 rounded-2xl text-black font-black font-cairo transition-transform active:scale-95", isUltraMode ? "bg-neonGreen" : "bg-neonBlue")}>
-          تشغيل
-        </button>
-      </div>
+      {!isMini && (
+        <div className="flex gap-3 mb-8 h-14">
+          <input 
+            type="text" 
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            placeholder="قم بلصق رابط فيديو يوتيوب هنا..."
+            className={cn("flex-1 bg-white/5 border rounded-2xl px-6 font-cairo text-right text-sm outline-none transition-all", isUltraMode ? "border-neonGreen/30 focus:border-neonGreen" : "border-white/10 focus:border-neonBlue")}
+            dir="rtl"
+          />
+          <button onClick={handlePlay} className={cn("px-8 rounded-2xl text-black font-black font-cairo transition-transform active:scale-95", isUltraMode ? "bg-neonGreen" : "bg-neonBlue")}>
+            تشغيل
+          </button>
+        </div>
+      )}
 
-      <div className="flex-1 rounded-[2.5rem] overflow-hidden border border-white/10 bg-black relative shadow-2xl">
+      <div className={cn("bg-black relative shadow-2xl rounded-[2.5rem]", isMini ? "absolute inset-0 w-full h-full rounded-none pointer-events-none" : "flex-1 overflow-hidden border border-white/10")}>
         {videoId ? (
           <iframe 
             src={`https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&playsinline=1`}
             allow="autoplay; encrypted-media; picture-in-picture"
             allowFullScreen
-            className="absolute inset-0 w-full h-full border-none"
+            className={cn("absolute inset-0 w-full h-full border-none", isMini && "pointer-events-auto")}
           />
         ) : (
           <div className="absolute inset-0 flex flex-col items-center justify-center opacity-40 font-cairo gap-6 text-center px-10 border border-dashed border-white/20 rounded-[2.5rem] m-2">
@@ -639,6 +744,131 @@ const YouTubePlayer = ({ onClose, isUltraMode }: { onClose: () => void, isUltraM
           </div>
         )}
       </div>
+      
+      {isMini && <div className="absolute inset-0 z-40 cursor-move pointer-events-auto opacity-0" />}
+    </motion.div>
+  )
+}
+
+// --- Vault Component ---
+
+const VaultSection = ({ isUltraMode }: any) => {
+  const [unlocked, setUnlocked] = useState(false)
+  const [scanning, setScanning] = useState(false)
+  const videoRef = React.useRef<HTMLVideoElement>(null)
+
+  const handleAuth = async () => {
+    setScanning(true)
+    playCyberSound('scan')
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } })
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream
+      }
+      setTimeout(() => {
+        stream.getTracks().forEach(t => t.stop())
+        setScanning(false)
+        setUnlocked(true)
+        playCyberSound('success')
+      }, 3000)
+    } catch {
+      setTimeout(() => {
+        setScanning(false)
+        setUnlocked(true)
+        playCyberSound('success')
+      }, 2000)
+    }
+  }
+
+  if (unlocked) {
+     return (
+        <div className={cn("flex flex-col gap-6 font-cairo text-right", isUltraMode && "text-neonGreen")}>
+           <GlassCard className={cn("p-10 min-h-[500px] flex flex-col bg-black/50 border-neonGreen/40")} glowColor="green" isUltraMode={isUltraMode}>
+              <div className="flex justify-between items-center mb-6">
+                 <StatusBadge active={true} label="Decrypted" isUltraMode={isUltraMode} />
+                 <Lock className="w-8 h-8 text-neonGreen opacity-50" />
+              </div>
+              <h3 className="text-3xl font-black mb-6 text-neonGreen">الخزنة السرية</h3>
+              <div className="space-y-4">
+                 <div className="p-4 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between group hover:bg-white/10 cursor-pointer transition-all">
+                    <span className="text-sm font-bold opacity-70 group-hover:opacity-100">Passwords.dat</span>
+                    <Database className="w-5 h-5 opacity-40 group-hover:text-neonGreen" />
+                 </div>
+                 <div className="p-4 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between group hover:bg-white/10 cursor-pointer transition-all">
+                    <span className="text-sm font-bold opacity-70 group-hover:opacity-100">Hidden_Media</span>
+                    <Camera className="w-5 h-5 opacity-40 group-hover:text-neonGreen" />
+                 </div>
+              </div>
+              <button 
+                onClick={() => { setUnlocked(false); playCyberSound('beep') }} 
+                className="mt-auto w-full h-14 bg-red-500/20 text-red-500 border border-red-500/50 font-black rounded-2xl tracking-widest uppercase text-xs hover:bg-red-500 hover:text-white transition-all">
+                Lock Vault
+              </button>
+           </GlassCard>
+        </div>
+     )
+  }
+
+  return (
+    <div className={cn("flex flex-col gap-6 font-cairo text-right", isUltraMode && "text-neonGreen")}>
+       <GlassCard className={cn("p-10 min-h-[500px] flex flex-col", isUltraMode && "border-neonGreen/20 bg-black")} isUltraMode={isUltraMode} glowColor={isUltraMode ? "" : "purple"}>
+          <div className="flex justify-between items-center mb-8">
+             <PremiumBadge label="AES-256 Vault" isUltraMode={isUltraMode} />
+             <StatusBadge active={true} label="Protected" isUltraMode={isUltraMode} />
+          </div>
+          
+          <div className="flex-1 flex flex-col items-center justify-center">
+             <div className="relative mb-8 group cursor-pointer" onClick={scanning ? undefined : handleAuth}>
+                <div className={cn("w-32 h-32 rounded-[3rem] border-2 flex items-center justify-center relative overflow-hidden", isUltraMode ? "border-neonGreen/30" : "border-white/10")}>
+                   {scanning && (
+                     <video 
+                        ref={videoRef} 
+                        autoPlay 
+                        playsInline 
+                        muted 
+                        className="absolute inset-0 w-full h-full object-cover opacity-50 contrast-150 grayscale mix-blend-screen mix-blend-lighten"
+                     />
+                   )}
+                   <ScanFace className={cn("w-16 h-16 z-10", isUltraMode ? "text-neonGreen" : "text-white/60 group-hover:text-white transition-colors")} strokeWidth={1.5} />
+                   {(scanning || isUltraMode) && (
+                     <motion.div 
+                       animate={{ y: [-45, 45, -45] }}
+                       transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                       className={cn("absolute left-0 right-0 h-[3px] shadow-[0_0_20px_4px] blur-[1px] z-20", isUltraMode ? "bg-neonGreen shadow-neonGreen/50" : "bg-neonBlue shadow-neonBlue/50")}
+                     />
+                   )}
+                </div>
+                <div className={cn("absolute inset-0 rounded-[3rem] border animate-ping opacity-20", scanning ? "border-neonGreen" : "border-white/20")} />
+             </div>
+
+             <h3 className="text-2xl font-black mb-2">{scanning ? "جاري فحص الوجه..." : "الخزنة السرية المشفرة"}</h3>
+             <p className="text-xs opacity-50 px-6 text-center leading-relaxed">
+                حماية بياناتك الحساسة بأقوى خوارزميات التشفير العسكري. لا يمكن لأحد الوصول للملفات سوى من خلال مصادقة بصمة الوجه (FaceID).
+             </p>
+          </div>
+
+          {!scanning && (
+            <>
+              <div className="grid grid-cols-2 gap-3 mt-8">
+                 <div className="p-4 rounded-3xl bg-white/5 border border-white/5 flex flex-col items-center text-center opacity-40 hover:opacity-100 transition-opacity cursor-not-allowed">
+                   <Database className="w-8 h-8 mb-3 opacity-60" />
+                   <span className="text-sm font-bold">الصور والفيديو</span>
+                   <span className="text-[9px]">مغلق</span>
+                 </div>
+                 <div className="p-4 rounded-3xl bg-white/5 border border-white/5 flex flex-col items-center text-center opacity-40 hover:opacity-100 transition-opacity cursor-not-allowed">
+                   <Lock className="w-8 h-8 mb-3 opacity-60" />
+                   <span className="text-sm font-bold">الملاحظات السرية</span>
+                   <span className="text-[9px]">مغلق</span>
+                 </div>
+              </div>
+
+              <button onClick={handleAuth} className={cn("w-full h-16 mt-6 rounded-[2rem] font-bold font-orbitron uppercase tracking-widest flex items-center justify-center gap-3 transition-transform active:scale-95 text-[10px]", isUltraMode ? "bg-neonGreen text-black" : "bg-white text-black")}>
+                 <Fingerprint className="w-5 h-5" />
+                 Authenticate to Unlock
+              </button>
+            </>
+          )}
+       </GlassCard>
     </div>
   )
 }
@@ -646,6 +876,7 @@ const YouTubePlayer = ({ onClose, isUltraMode }: { onClose: () => void, isUltraM
 // --- Main App ---
 
 export default function App() {
+  const [isBooting, setIsBooting] = useState(true)
   const [activeTab, setActiveTab] = useState<TabType>('boost')
   const [isBoosting, setIsBoosting] = useState(false)
   const [boostProgress, setBoostProgress] = useState(0)
@@ -688,6 +919,7 @@ export default function App() {
   const startBoost = () => {
     if (isBoosting) return
     setIsBoosting(true)
+    playCyberSound('scan')
     let p = 0
     const statuses = ['MAPPING CORE', 'FLUSHING L2 CACHE', 'ALGORITHMIC TUNING', 'DATA DEBOTTLE', 'FINALIZING']
     
@@ -708,6 +940,7 @@ export default function App() {
             ram: prev.ram - 20
           }))
           setBoostProgress(0)
+          playCyberSound('success')
         }, 1000)
       }
     }, 40)
@@ -715,15 +948,18 @@ export default function App() {
 
   const startCleaning = () => {
     setIsCleaning(true)
+    playCyberSound('scan')
     setTimeout(() => {
       setIsCleaning(false)
       setMetrics(prev => ({ ...prev, health: Math.min(99, prev.health + 5) }))
+      playCyberSound('success')
     }, 4000)
   }
 
   const startNetBoost = async () => {
     if (isNetBoosting) return
     setIsNetBoosting(true)
+    playCyberSound('scan')
     
     try {
       const start = performance.now()
@@ -737,19 +973,27 @@ export default function App() {
 
     setTimeout(() => {
       setIsNetBoosting(false)
+      playCyberSound('success')
     }, 2000)
   }
 
   const startBatteryOptimize = () => {
     setIsOptimizingBattery(true)
+    playCyberSound('scan')
     setTimeout(() => {
       setIsOptimizingBattery(false)
       setMetrics(prev => ({ ...prev, batteryHealth: Math.min(100, prev.batteryHealth + 4) }))
+      playCyberSound('success')
     }, 4000)
   }
 
   const toggleUltraMode = () => {
+    playCyberSound('beep')
     setIsUltraMode(!isUltraMode)
+  }
+
+  if (isBooting) {
+    return <BootSequence onComplete={() => setIsBooting(false)} />
   }
 
   return (
@@ -926,52 +1170,7 @@ export default function App() {
                )}
 
                {activeTab === 'vault' && (
-                  <div className={cn("flex flex-col gap-6 font-cairo text-right", isUltraMode && "text-neonGreen")}>
-                     <GlassCard className={cn("p-10 min-h-[500px] flex flex-col", isUltraMode && "border-neonGreen/20 bg-black")} isUltraMode={isUltraMode} glowColor={isUltraMode ? "" : "purple"}>
-                        <div className="flex justify-between items-center mb-8">
-                           <PremiumBadge label="AES-256 Vault" isUltraMode={isUltraMode} />
-                           <StatusBadge active={true} label="Protected" isUltraMode={isUltraMode} />
-                        </div>
-                        
-                        <div className="flex-1 flex flex-col items-center justify-center">
-                           {/* FaceID Scanner Simulator */}
-                           <div className="relative mb-8 group cursor-pointer" onClick={() => alert('FaceID Simulated Success')}>
-                              <div className={cn("w-32 h-32 rounded-[3rem] border-2 flex items-center justify-center relative overflow-hidden", isUltraMode ? "border-neonGreen/30" : "border-white/10")}>
-                                 <ScanFace className={cn("w-16 h-16 z-10", isUltraMode ? "text-neonGreen" : "text-white/60 group-hover:text-white transition-colors")} strokeWidth={1.5} />
-                                 <motion.div 
-                                   animate={{ y: [-45, 45, -45] }}
-                                   transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                                   className={cn("absolute left-0 right-0 h-[3px] shadow-[0_0_20px_4px] blur-[1px] z-20", isUltraMode ? "bg-neonGreen shadow-neonGreen/50" : "bg-neonBlue shadow-neonBlue/50")}
-                                 />
-                              </div>
-                              <div className="absolute inset-0 rounded-[3rem] border border-white/20 animate-ping opacity-20" />
-                           </div>
-
-                           <h3 className="text-2xl font-black mb-2">الخزنة السرية المشفرة</h3>
-                           <p className="text-xs opacity-50 px-6 text-center leading-relaxed">
-                              حماية بياناتك الحساسة بأقوى خوارزميات التشفير العسكري. لا يمكن لأحد الوصول للملفات سوى من خلال مصادقة بصمة الوجه (FaceID).
-                           </p>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-3 mt-8">
-                           <div className="p-4 rounded-3xl bg-white/5 border border-white/5 flex flex-col items-center text-center opacity-40 hover:opacity-100 transition-opacity cursor-not-allowed">
-                             <Database className="w-8 h-8 mb-3 opacity-60" />
-                             <span className="text-sm font-bold">الصور والفيديو</span>
-                             <span className="text-[9px]">مغلق</span>
-                           </div>
-                           <div className="p-4 rounded-3xl bg-white/5 border border-white/5 flex flex-col items-center text-center opacity-40 hover:opacity-100 transition-opacity cursor-not-allowed">
-                             <Lock className="w-8 h-8 mb-3 opacity-60" />
-                             <span className="text-sm font-bold">الملاحظات السرية</span>
-                             <span className="text-[9px]">مغلق</span>
-                           </div>
-                        </div>
-
-                        <button className={cn("w-full h-16 mt-6 rounded-[2rem] font-bold font-orbitron uppercase tracking-widest flex items-center justify-center gap-3 transition-transform active:scale-95 text-[10px]", isUltraMode ? "bg-neonGreen text-black" : "bg-white text-black")}>
-                           <Fingerprint className="w-5 h-5" />
-                           Authenticate to Unlock
-                        </button>
-                     </GlassCard>
-                  </div>
+                  <VaultSection isUltraMode={isUltraMode} />
                )}
             </motion.div>
          </AnimatePresence>
