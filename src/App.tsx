@@ -399,60 +399,133 @@ const NetworkSection = ({ onBoost, isBoosting, speed, isUltraMode }: any) => (
   </div>
 )
 
-const ShieldSection = ({ isActive, toggle, count, isUltraMode }: any) => (
-  <div className="flex flex-col gap-6 font-cairo">
-     <GlassCard className={cn("p-8 text-center", isUltraMode ? "border-neonGreen/20" : "border-yellow-500/20")} glowColor={isActive ? 'gold' : ''} isUltraMode={isUltraMode}>
-        <div className="relative flex justify-center mb-6">
-           <motion.div 
-             animate={isActive ? { scale: [1, 1.1, 1], rotate: [0, 5, -5, 0] } : {}}
-             transition={{ duration: 4, repeat: Infinity }}
-             className={cn("p-6 rounded-3xl border shadow-2xl", isActive ? (isUltraMode ? "bg-neonGreen/10 border-neonGreen/40 text-neonGreen shadow-neonGreen/20" : "bg-yellow-500/10 border-yellow-500/30 text-yellow-500 shadow-yellow-500/10") : "bg-white/5 border-white/10 opacity-30")}
-           >
-              <ShieldCheck className="w-16 h-16" />
-           </motion.div>
-           {isActive && (
+// --- Real Logic Functions ---
+
+const installDNSProfile = () => {
+  const profileName = "NeuralBoostX_YouTube_Shield";
+  const dnsProfileXML = `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>PayloadContent</key>
+	<array>
+		<dict>
+			<key>DNSSettings</key>
+			<dict>
+				<key>DNSProtocol</key>
+				<string>HTTPS</string>
+				<key>ServerURL</key>
+				<string>https://dns.adguard-dns.com/dns-query</string>
+			</dict>
+			<key>PayloadDescription</key>
+			<string>Configures Encrypted DNS for Ad-Blocking (YouTube & System-Wide)</string>
+			<key>PayloadDisplayName</key>
+			<string>NeuralBoostX Security DNS</string>
+			<key>PayloadIdentifier</key>
+			<string>com.neuralboostx.dns-settings</string>
+			<key>PayloadType</key>
+			<string>com.apple.dnsSettings.managed</string>
+			<key>PayloadUUID</key>
+			<string>${crypto.randomUUID()}</string>
+			<key>PayloadVersion</key>
+			<integer>1</integer>
+		</dict>
+	</array>
+	<key>PayloadDisplayName</key>
+	<string>NeuralBoostX Ad-Blocker Pro</string>
+	<key>PayloadIdentifier</key>
+	<string>com.neuralboostx.adblock</string>
+	<key>PayloadRemovalDisallowed</key>
+	<false/>
+	<key>PayloadType</key>
+	<string>Configuration</string>
+	<key>PayloadUUID</key>
+	<string>${crypto.randomUUID()}</string>
+	<key>PayloadVersion</key>
+	<integer>1</integer>
+</dict>
+</plist>`;
+
+  const blob = new Blob([dnsProfileXML], { type: 'application/x-apple-aspen-config' });
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `${profileName}.mobileconfig`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
+
+const ShieldSection = ({ isActive, toggle, count, isUltraMode }: any) => {
+  const handleActivate = () => {
+    installDNSProfile();
+    toggle();
+  };
+
+  return (
+    <div className="flex flex-col gap-6 font-cairo">
+       <GlassCard className={cn("p-8 text-center", isUltraMode ? "border-neonGreen/20" : "border-yellow-500/20")} glowColor={isActive ? 'gold' : ''} isUltraMode={isUltraMode}>
+          <div className="relative flex justify-center mb-6">
              <motion.div 
-               initial={{ scale: 0 }}
-               animate={{ scale: 1 }}
-               className="absolute -top-2 -right-2 bg-neonGreen text-black text-[10px] font-bold px-2 py-1 rounded-full shadow-lg"
+               animate={isActive ? { scale: [1, 1.1, 1], rotate: [0, 5, -5, 0] } : {}}
+               transition={{ duration: 4, repeat: Infinity }}
+               className={cn("p-6 rounded-3xl border shadow-2xl", isActive ? (isUltraMode ? "bg-neonGreen/10 border-neonGreen/40 text-neonGreen shadow-neonGreen/20" : "bg-yellow-500/10 border-yellow-500/30 text-yellow-500 shadow-yellow-500/10") : "bg-white/5 border-white/10 opacity-30")}
              >
-               SECURE
+                <ShieldCheck className="w-16 h-16" />
              </motion.div>
-           )}
-        </div>
+             {isActive && (
+               <motion.div 
+                 initial={{ scale: 0 }}
+                 animate={{ scale: 1 }}
+                 className="absolute -top-2 -right-2 bg-neonGreen text-black text-[10px] font-bold px-2 py-1 rounded-full shadow-lg"
+               >
+                 SECURE
+               </motion.div>
+             )}
+          </div>
 
-        <h3 className={cn("text-xl font-bold mb-1", isUltraMode && "text-neonGreen")}>درع الحماية الشامل</h3>
-        <p className="text-[11px] opacity-50 mb-6 mx-auto max-w-[200px]">حجب إعلانات يوتيوب، المواقع المشبوهة، ومنع التتبع الرقمي.</p>
+          <h3 className={cn("text-xl font-bold mb-1", isUltraMode && "text-neonGreen")}>درع الحماية الشامل</h3>
+          <p className="text-[11px] opacity-50 mb-6 mx-auto max-w-[200px]">حجب إعلانات يوتيوب، المواقع المشبوهة، ومنع التتبع الرقمي (Real DNS Guard).</p>
 
-        <div className="grid grid-cols-2 gap-3 mb-6">
-           <div className={cn("p-3 rounded-2xl border transition-all", isActive ? (isUltraMode ? "border-neonGreen/20 bg-neonGreen/5" : "border-yellow-500/20 bg-yellow-500/5") : "border-white/5 bg-white/5 opacity-50")}>
-              <span className="text-[9px] block opacity-40 uppercase mb-1">إعلانات محجوبة</span>
-              <span className={cn("text-lg font-orbitron font-bold", isActive && (isUltraMode ? "text-neonGreen" : "text-yellow-500"))}>
-                {count}
-              </span>
-           </div>
-           <div className={cn("p-3 rounded-2xl border transition-all", isActive ? (isUltraMode ? "border-neonGreen/20 bg-neonGreen/5" : "border-yellow-500/20 bg-yellow-500/5") : "border-white/5 bg-white/5 opacity-50")}>
-              <span className="text-[9px] block opacity-40 uppercase mb-1">فلتر يوتيوب</span>
-              <span className={cn("text-lg font-bold", isActive && (isUltraMode ? "text-neonGreen" : "text-yellow-500"))}>
-                {isActive ? "نشط" : "متوقف"}
-              </span>
-           </div>
-        </div>
+          <div className="grid grid-cols-2 gap-3 mb-6">
+             <div className={cn("p-3 rounded-2xl border transition-all", isActive ? (isUltraMode ? "border-neonGreen/20 bg-neonGreen/5" : "border-yellow-500/20 bg-yellow-500/5") : "border-white/5 bg-white/5 opacity-50")}>
+                <span className="text-[9px] block opacity-40 uppercase mb-1 text-right">إعلانات محجوبة</span>
+                <span className={cn("text-lg font-orbitron font-bold", isActive && (isUltraMode ? "text-neonGreen" : "text-yellow-500"))}>
+                  {count}
+                </span>
+             </div>
+             <div className={cn("p-3 rounded-2xl border transition-all", isActive ? (isUltraMode ? "border-neonGreen/20 bg-neonGreen/5" : "border-yellow-500/20 bg-yellow-500/5") : "border-white/5 bg-white/5 opacity-50 text-right")}>
+                <span className="text-[9px] block opacity-40 uppercase mb-1">فلتر يوتيوب</span>
+                <span className={cn("text-lg font-bold", isActive && (isUltraMode ? "text-neonGreen" : "text-yellow-500"))}>
+                  {isActive ? "نشط" : "متوقف"}
+                </span>
+             </div>
+          </div>
 
-        <button 
-          onClick={toggle}
-          className={cn(
-            "w-full h-16 rounded-2xl font-bold flex items-center justify-center gap-3 transition-all relative overflow-hidden",
-            isActive 
-              ? (isUltraMode ? "bg-neonGreen text-black" : "bg-yellow-500 text-black shadow-lg") 
-              : "bg-white/5 border border-white/10 hover:bg-white/10"
+          <button 
+            onClick={handleActivate}
+            className={cn(
+              "w-full h-16 rounded-2xl font-bold flex items-center justify-center gap-3 transition-all relative overflow-hidden",
+              isActive 
+                ? (isUltraMode ? "bg-neonGreen text-black" : "bg-yellow-500 text-black shadow-lg") 
+                : "bg-white/5 border border-white/10 hover:bg-white/10"
+            )}
+          >
+            {isActive && <motion.div animate={{ x: ['100%', '-100%'] }} transition={{ duration: 2, repeat: Infinity }} className="absolute inset-0 bg-white/20 skew-x-12" />}
+            <Zap className={cn("w-5 h-5", isActive && "animate-pulse")} />
+            <span>{isActive ? "إيقاف الدرع" : "تفعيل حاجب الإعلانات (تثبيت)"}</span>
+          </button>
+          
+          {isActive && (
+            <motion.p 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-[10px] text-yellow-500 font-bold mt-4"
+            >
+              ملاحظة: اذهب للإعدادات لتثبيت ملف التعريف (DNS Profile)
+            </motion.p>
           )}
-        >
-          {isActive && <motion.div animate={{ x: ['100%', '-100%'] }} transition={{ duration: 2, repeat: Infinity }} className="absolute inset-0 bg-white/20 skew-x-12" />}
-          <Zap className={cn("w-5 h-5", isActive && "animate-pulse")} />
-          <span>{isActive ? "إيقاف الدرع" : "تفعيل حاجب الإعلانات"}</span>
-        </button>
-     </GlassCard>
+       </GlassCard>
 
      <div className="space-y-3">
         <h4 className="text-xs font-bold opacity-40 px-2 uppercase tracking-widest text-right">المميزات المفعلة</h4>
@@ -473,7 +546,8 @@ const ShieldSection = ({ isActive, toggle, count, isUltraMode }: any) => (
         ))}
      </div>
   </div>
-)
+  )
+}
 
 // --- Main App ---
 
