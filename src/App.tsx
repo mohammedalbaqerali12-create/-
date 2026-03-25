@@ -226,62 +226,130 @@ const OptimizationSection = ({ onBoost, isBoosting, progress, status, metrics, i
   </div>
 )
 
-const BatterySection = ({ onOptimize, isOptimizing, metrics, isUltraMode }: any) => (
-  <div className="flex flex-col gap-6 font-cairo">
-    <div className="flex justify-between items-center mb-2">
-       <PremiumBadge label="Battery Core" isUltraMode={isUltraMode} />
-       <StatusBadge active={true} label="Peak Performance" isUltraMode={isUltraMode} />
-    </div>
+const BatterySection = ({ onOptimize, isOptimizing, metrics, isUltraMode }: any) => {
+  const [chargeSpeed, setChargeSpeed] = useState(0);
+  const [isHyperCharging, setIsHyperCharging] = useState(false);
 
-    <GlassCard className="p-8 flex flex-col items-center" glowColor={isUltraMode ? "" : "gold"} isUltraMode={isUltraMode}>
-       <div className="relative w-48 h-48 mb-6 flex items-center justify-center">
-          <svg className="absolute inset-0 w-full h-full -rotate-90">
-             <circle cx="96" cy="96" r="80" stroke="currentColor" strokeWidth="2" fill="transparent" className="text-white/5" />
-             <motion.circle 
-               cx="96" cy="96" r="80" stroke={isUltraMode ? "#39ff14" : "#eab308"} strokeWidth="6" fill="transparent"
-               strokeDasharray={2 * Math.PI * 80}
-               initial={{ strokeDashoffset: 2 * Math.PI * 80 }}
-               animate={{ strokeDashoffset: (2 * Math.PI * 80) * (1 - (isUltraMode ? 0.99 : (metrics.batteryHealth / 100))) }}
-               transition={{ duration: 2, ease: "easeOut" }}
-               strokeLinecap="round"
-             />
-          </svg>
-          <div className="text-center">
-             <span className={cn("text-5xl font-orbitron font-black block", isUltraMode && "text-neonGreen")}>{isUltraMode ? "99+" : metrics.batteryHealth}%</span>
-             <span className="text-[9px] font-bold opacity-30 uppercase tracking-[0.3em]">Remaining</span>
-          </div>
-       </div>
+  const startHyperCharge = () => {
+    setIsHyperCharging(true);
+    playCyberSound('scan');
+    let s = 0;
+    const interval = setInterval(() => {
+      s += 5;
+      setChargeSpeed(s);
+      if (s >= 100) {
+        clearInterval(interval);
+        setTimeout(() => {
+          setIsHyperCharging(false);
+          setChargeSpeed(0);
+          playCyberSound('success');
+        }, 1000);
+      }
+    }, 50);
+  };
 
-       <div className="grid grid-cols-2 gap-4 w-full">
-          <div className="bg-white/5 rounded-2xl p-4 border border-white/5 text-center">
-             <span className="text-[10px] block opacity-40 mb-1">Health</span>
-             <span className={cn("text-lg font-orbitron font-bold", isUltraMode && "text-neonGreen")}>91%</span>
-          </div>
-          <div className="bg-white/5 rounded-2xl p-4 border border-white/5 text-center">
-             <span className="text-[10px] block opacity-40 mb-1">Temperature</span>
-             <span className={cn("text-lg font-orbitron font-bold", isUltraMode && "text-neonGreen")}>{Math.round(metrics.temp)}°C</span>
-          </div>
-       </div>
-    </GlassCard>
-
-    <button 
-      onClick={onOptimize}
-      disabled={isOptimizing}
-      className={cn(
-        "h-20 rounded-[2rem] font-black font-orbitron flex items-center justify-center gap-3 transition-all",
-        isOptimizing 
-          ? (isUltraMode ? "bg-neonGreen/10 border border-neonGreen/20 text-neonGreen" : "bg-yellow-500/10 border border-yellow-500/20 text-yellow-500") 
-          : (isUltraMode ? "bg-neonGreen text-black" : "bg-yellow-500 text-black shadow-lg shadow-yellow-500/20")
-      )}
-    >
-      <Bolt className={cn("w-5 h-5", isOptimizing && "animate-bounce")} fill={isOptimizing ? "none" : "currentColor"} />
-      <div className="flex flex-col items-start leading-none">
-         <span className="text-sm tracking-widest uppercase">{isOptimizing ? "Optimizing Power..." : "BOOST BATTERY LIFE"}</span>
-         {!isOptimizing && <span className="text-[9px] font-bold opacity-50 mt-1 font-cairo">إطالة عمر البطارية وتحسين خلايا الطاقة</span>}
+  return (
+    <div className="flex flex-col gap-6 font-cairo">
+      <div className="flex justify-between items-center mb-2">
+         <PremiumBadge label="Battery Core" isUltraMode={isUltraMode} />
+         <StatusBadge active={true} label={isHyperCharging ? "HYPER-CHARGING" : "Peak Performance"} isUltraMode={isUltraMode} />
       </div>
-    </button>
-  </div>
-)
+
+      <GlassCard className="p-8 flex flex-col items-center" glowColor={isUltraMode ? "" : "gold"} isUltraMode={isUltraMode}>
+         <div className="relative w-48 h-48 mb-6 flex items-center justify-center">
+            <svg className="absolute inset-0 w-full h-full -rotate-90">
+               <circle cx="96" cy="96" r="80" stroke="currentColor" strokeWidth="2" fill="transparent" className="text-white/5" />
+               <motion.circle 
+                 cx="96" cy="96" r="80" stroke={isUltraMode ? "#39ff14" : "#eab308"} strokeWidth="6" fill="transparent"
+                 strokeDasharray={2 * Math.PI * 80}
+                 initial={{ strokeDashoffset: 2 * Math.PI * 80 }}
+                 animate={{ strokeDashoffset: (2 * Math.PI * 80) * (1 - (isUltraMode ? 0.99 : (metrics.batteryHealth / 100))) }}
+                 transition={{ duration: 2, ease: "easeOut" }}
+                 strokeLinecap="round"
+               />
+               {isHyperCharging && (
+                 <motion.circle 
+                   cx="96" cy="96" r="80" stroke="#39ff14" strokeWidth="8" fill="transparent"
+                   strokeDasharray={2 * Math.PI * 80}
+                   animate={{ strokeDashoffset: [2 * Math.PI * 80, 0], opacity: [0, 1, 0] }}
+                   transition={{ duration: 1, repeat: Infinity }}
+                 />
+               )}
+            </svg>
+            <div className="text-center">
+               <span className={cn("text-5xl font-orbitron font-black block", isUltraMode && "text-neonGreen")}>
+                 {isHyperCharging ? `${chargeSpeed}%` : (isUltraMode ? "99+" : metrics.batteryHealth)}%
+               </span>
+               <span className="text-[9px] font-bold opacity-30 uppercase tracking-[0.3em]">{isHyperCharging ? "Charging Rate" : "Remaining"}</span>
+            </div>
+            {isHyperCharging && (
+              <motion.div 
+                animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
+                transition={{ duration: 0.5, repeat: Infinity }}
+                className="absolute -top-4"
+              >
+                <Zap className="text-neonGreen w-8 h-8 drop-shadow-[0_0_10px_#39ff14]" fill="currentColor" />
+              </motion.div>
+            )}
+         </div>
+
+         <div className="grid grid-cols-2 gap-4 w-full">
+            <div className="bg-white/5 rounded-2xl p-4 border border-white/5 text-center">
+               <span className="text-[10px] block opacity-40 mb-1">Charging Spec</span>
+               <span className={cn("text-lg font-orbitron font-bold", isUltraMode && "text-neonGreen")}>{isHyperCharging ? "120W Max" : "Fast Chg"}</span>
+            </div>
+            <div className="bg-white/5 rounded-2xl p-4 border border-white/5 text-center">
+               <span className="text-[10px] block opacity-40 mb-1">Temperature</span>
+               <span className={cn("text-lg font-orbitron font-bold", isUltraMode && "text-neonGreen")}>{Math.round(metrics.temp - (isHyperCharging ? 2 : 0))}°C</span>
+            </div>
+         </div>
+      </GlassCard>
+
+      <div className="grid grid-cols-1 gap-4">
+        <button 
+          onClick={startHyperCharge}
+          disabled={isHyperCharging}
+          className={cn(
+            "h-20 rounded-[2rem] font-black font-orbitron flex items-center justify-center gap-3 transition-all relative overflow-hidden",
+            isHyperCharging 
+              ? "bg-neonGreen/20 text-neonGreen border border-neonGreen shadow-[0_0_30px_rgba(57,255,20,0.3)]"
+              : "bg-black border border-neonGreen/40 text-neonGreen hover:bg-neonGreen hover:text-black shadow-[0_0_20px_rgba(57,255,20,0.1)]"
+          )}
+        >
+          {isHyperCharging && (
+            <motion.div 
+              className="absolute inset-x-0 h-full bg-neonGreen/10"
+              initial={{ x: '-100%' }}
+              animate={{ x: '100%' }}
+              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+            />
+          )}
+          <Zap className={cn("w-6 h-6", isHyperCharging && "animate-pulse")} fill="currentColor" />
+          <div className="flex flex-col items-start leading-none relative z-10">
+             <span className="text-sm tracking-widest uppercase">{isHyperCharging ? "HYPER CHARGING ACTIVE" : "ACTIVATE ULTRA CHARGE SPEED"}</span>
+             {!isHyperCharging && <span className="text-[9px] font-bold opacity-70 mt-1 font-cairo">تحويل الشحن إلى السرعة القصوى (نظام النانو)</span>}
+          </div>
+        </button>
+
+        <button 
+          onClick={onOptimize}
+          disabled={isOptimizing}
+          className={cn(
+            "h-16 rounded-2xl font-black font-orbitron flex items-center justify-center gap-3 transition-all",
+            isOptimizing 
+              ? (isUltraMode ? "bg-neonGreen/10 border border-neonGreen/20 text-neonGreen" : "bg-yellow-500/10 border border-yellow-500/20 text-yellow-500") 
+              : (isUltraMode ? "bg-white/5 text-white/40 border border-white/10" : "bg-yellow-500 text-black")
+          )}
+        >
+          <Bolt className={cn("w-4 h-4", isOptimizing && "animate-bounce")} fill={isOptimizing ? "none" : "currentColor"} />
+          <div className="flex flex-col items-start leading-none">
+             <span className="text-xs tracking-widest uppercase">{isOptimizing ? "Optimizing Power..." : "POWER SAVE MODE"}</span>
+          </div>
+        </button>
+      </div>
+    </div>
+  )
+}
 
 const PhotoCleanerSection = ({ onClean, isCleaning, isUltraMode }: any) => {
   const [junkFound, setJunkFound] = useState(0)
